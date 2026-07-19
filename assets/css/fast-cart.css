@@ -1,0 +1,40 @@
+/* Almasara Fast Cart */
+
+/* اعلان افزودن به سبد */
+.amfc-toast {
+	position: fixed;
+	inset-inline: 0;
+	bottom: 24px;
+	margin-inline: auto;
+	width: max-content;
+	max-width: calc(100% - 32px);
+	z-index: 100001;
+	padding: 12px 22px;
+	border-radius: 999px;
+	background-color: #16265c;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	box-shadow: 0 8px 30px rgba(16, 24, 40, 0.25);
+	opacity: 0;
+	transform: translateY(16px);
+	pointer-events: none;
+	transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.amfc-toast.is-visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* بج شمارنده — پایه؛ نمایش/مخفی بر اساس وجود آیتم */
+.amfc-count:not(.amfc-has-items):empty {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.amfc-toast {
+		transition: opacity 0.25s ease;
+		transform: none;
+	}
+}
