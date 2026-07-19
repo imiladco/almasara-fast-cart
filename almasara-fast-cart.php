@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Almasara Fast Cart
  * Description:       بهبود سرعتِ افزودن به سبد خرید ووکامرس با UI خوش‌بینانه (لایه بهبود روی مکانیزم بومی، نه جایگزین آن).
- * Version:           0.1.1
+ * Version:           0.2.0
  * Author:            Almasara
  * Text Domain:       almasara-fast-cart
  * Requires at least: 6.0
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('AMFC_VERSION', '0.1.1');
+define('AMFC_VERSION', '0.2.0');
 define('AMFC_FILE', __FILE__);
 define('AMFC_PATH', plugin_dir_path(__FILE__));
 define('AMFC_URL', plugin_dir_url(__FILE__));
@@ -51,9 +51,11 @@ add_action('plugins_loaded', static function () {
 
     require_once AMFC_PATH . 'includes/settings.php';
     require_once AMFC_PATH . 'includes/rest.php';
+    require_once AMFC_PATH . 'includes/elementor.php';
 
     \Almasara_Fast_Cart\Settings::init();
     \Almasara_Fast_Cart\Rest::init();
+    \Almasara_Fast_Cart\Elementor::init(); // ویجت المنتور فقط اگر المنتور فعال باشد ثبت می‌شود
 
     add_action('wp_enqueue_scripts', 'amfc_enqueue_assets');
 });

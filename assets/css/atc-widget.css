@@ -1,0 +1,129 @@
+/* ویجت افزودن به سبد — افزونه سبد سریع الماسارا */
+
+.amfc-atc {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	gap: 12px;
+}
+
+.amfc-atc__btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--amfc-atc-icongap, 8px);
+	padding: 12px 24px;
+	border: 1px solid transparent;
+	border-radius: 10px;
+	background-color: #16265c;
+	color: #fff;
+	font-weight: 700;
+	line-height: 1;
+	cursor: pointer;
+	text-decoration: none;
+	transition: all 0.25s ease;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.amfc-atc__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.amfc-atc__icon svg {
+	width: var(--amfc-atc-icon, 20px);
+	height: var(--amfc-atc-icon, 20px);
+	display: block;
+}
+
+.amfc-atc__icon img {
+	width: var(--amfc-atc-icon, 20px);
+	height: auto;
+	display: block;
+}
+
+.amfc-atc__price {
+	opacity: 0.9;
+	font-weight: 800;
+}
+
+/* حالت‌های ووکامرس روی دکمه */
+.amfc-atc__btn.loading {
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+.amfc-atc__btn.loading .amfc-atc__icon {
+	animation: amfc-atc-spin 0.7s linear infinite;
+}
+
+@keyframes amfc-atc-spin {
+	to { transform: rotate(360deg); }
+}
+
+/* مخفی کردن لینک «مشاهده سبد» پیش‌فرض ووکامرس */
+.amfc-atc--hide-viewcart .added_to_cart {
+	display: none !important;
+}
+
+/* انتخابگر تعداد */
+.amfc-atc__qty {
+	display: inline-flex;
+	align-items: center;
+	height: 48px;
+	border: 1px solid #e4e7ee;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #fff;
+}
+
+.amfc-atc__step {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 100%;
+	border: 0;
+	background: none;
+	color: #1a2b4a;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+	transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.amfc-atc__qty-input {
+	width: 48px;
+	height: 100%;
+	border: 0;
+	background: none;
+	text-align: center;
+	font: inherit;
+	font-weight: 700;
+	color: #1a2b4a;
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+.amfc-atc__qty-input::-webkit-outer-spin-button,
+.amfc-atc__qty-input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.amfc-atc__qty:not(.amfc-atc__qty--stepper) {
+	padding: 0 8px;
+}
+
+/* پیام ادیتور */
+.amfc-notice {
+	padding: 16px;
+	border: 1px dashed #c00;
+	border-radius: 6px;
+	color: #c00;
+	font-size: 13px;
+	text-align: center;
+}
