@@ -2,17 +2,141 @@
 
 .amfc-atc {
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.amfc-atc__variations,
+.amfc-atc__single_variation_wrap,
+.amfc-atc .single_variation_wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin: 0;
+}
+
+/* ---------- واریانت‌ها ---------- */
+
+.amfc-atc__attrs {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.amfc-atc__attr {
+	--amfc-arrow: #16265c;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.amfc-atc__attr-label {
+	font-weight: 700;
+	color: #16265c;
+}
+
+.amfc-atc__attr select {
+	width: 100%;
+	height: 52px;
+	padding: 0 16px;
+	border: 0;
+	border-radius: 10px;
+	background-color: #eef1f9;
+	color: #16265c;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	/* فلش سفارشی */
+	background-image: linear-gradient(45deg, transparent 50%, var(--amfc-arrow) 50%), linear-gradient(135deg, var(--amfc-arrow) 50%, transparent 50%);
+	background-position: calc(0% + 18px) center, calc(0% + 24px) center;
+	background-size: 6px 6px, 6px 6px;
+	background-repeat: no-repeat;
+	text-align: center;
+	text-align-last: center;
+}
+
+/* نمایش/مخفی reset را خودِ WooCommerce با visibility مدیریت می‌کند */
+.amfc-atc__reset {
+	align-self: flex-start;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 14px;
+	border-radius: 8px;
+	background-color: rgba(229, 72, 77, 0.1);
+	color: #e5484d;
+	font-size: 13px;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+/* دکمه افزودن تا انتخاب کامل واریانت غیرفعال (کلاس WooCommerce) */
+.amfc-atc .woocommerce-variation-add-to-cart-disabled .amfc-atc__btn {
+	opacity: 0.45;
+	pointer-events: none;
+}
+
+/* ---------- جعبه قیمت ---------- */
+
+.amfc-atc__price-box {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.amfc-atc__price-box:empty {
+	display: none;
+}
+
+.amfc-atc__discount {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	padding: 3px 8px;
+	border-radius: 8px;
+	background-color: #e6123d;
+	color: #fff;
+	font-size: 13px;
+	font-weight: 800;
+}
+
+.amfc-atc__regular {
+	color: #9aa3b2;
+	font-size: 15px;
+	text-decoration: line-through;
+}
+
+.amfc-atc__final {
+	color: #16265c;
+	font-size: 28px;
+	font-weight: 800;
+}
+
+.amfc-atc__currency {
+	color: #16265c;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+/* ---------- ردیف افزودن ---------- */
+
+.amfc-atc__addrow {
+	display: flex;
 	align-items: stretch;
 	gap: 12px;
 }
 
 .amfc-atc__btn {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: var(--amfc-atc-icongap, 8px);
-	padding: 12px 24px;
+	padding: 16px 24px;
 	border: 1px solid transparent;
 	border-radius: 10px;
 	background-color: #16265c;
@@ -26,6 +150,31 @@
 	appearance: none;
 }
 
+.amfc-atc__btn-in {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--amfc-atc-icongap, 8px);
+}
+
+.amfc-atc__btn.is-loading {
+	pointer-events: none;
+}
+
+.amfc-atc__btn-loader {
+	width: 1.3em;
+	height: 1.3em;
+	border-radius: 50%;
+	background: conic-gradient(currentColor 0deg, transparent 300deg);
+	-webkit-mask: radial-gradient(closest-side, transparent 62%, #000 63%);
+	mask: radial-gradient(closest-side, transparent 62%, #000 63%);
+	animation: amfc-spin 0.7s linear infinite;
+}
+
+.amfc-atc__btn--error {
+	background-color: #e5484d !important;
+	border-color: #e5484d !important;
+}
+
 .amfc-atc__icon {
 	display: inline-flex;
 	align-items: center;
@@ -33,89 +182,166 @@
 	flex-shrink: 0;
 }
 
-.amfc-atc__icon svg {
-	width: var(--amfc-atc-icon, 20px);
-	height: var(--amfc-atc-icon, 20px);
-	display: block;
-}
+.amfc-atc__icon svg { width: var(--amfc-atc-icon, 20px); height: var(--amfc-atc-icon, 20px); display: block; }
+.amfc-atc__icon img { width: var(--amfc-atc-icon, 20px); height: auto; display: block; }
 
-.amfc-atc__icon img {
-	width: var(--amfc-atc-icon, 20px);
-	height: auto;
-	display: block;
-}
+@keyframes amfc-spin { to { transform: rotate(360deg); } }
 
-.amfc-atc__price {
-	opacity: 0.9;
-	font-weight: 800;
-}
+/* ---------- انتخابگر تعداد (افزودن) ---------- */
 
-/* حالت‌های ووکامرس روی دکمه */
-.amfc-atc__btn.loading {
-	opacity: 0.7;
-	pointer-events: none;
-}
-
-.amfc-atc__btn.loading .amfc-atc__icon {
-	animation: amfc-atc-spin 0.7s linear infinite;
-}
-
-@keyframes amfc-atc-spin {
-	to { transform: rotate(360deg); }
-}
-
-/* مخفی کردن لینک «مشاهده سبد» پیش‌فرض ووکامرس */
-.amfc-atc--hide-viewcart .added_to_cart {
-	display: none !important;
-}
-
-/* انتخابگر تعداد */
 .amfc-atc__qty {
 	display: inline-flex;
 	align-items: center;
-	height: 48px;
+	height: 52px;
 	border: 1px solid #e4e7ee;
 	border-radius: 10px;
 	overflow: hidden;
 	background: #fff;
+	flex-shrink: 0;
 }
 
 .amfc-atc__step {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
 	width: 40px;
 	height: 100%;
 	border: 0;
 	background: none;
-	color: #1a2b4a;
+	color: #16265c;
 	font-size: 20px;
-	line-height: 1;
 	cursor: pointer;
-	transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .amfc-atc__qty-input {
-	width: 48px;
+	width: 46px;
 	height: 100%;
 	border: 0;
 	background: none;
 	text-align: center;
 	font: inherit;
 	font-weight: 700;
-	color: #1a2b4a;
+	color: #16265c;
 	-moz-appearance: textfield;
 	appearance: textfield;
 }
 
 .amfc-atc__qty-input::-webkit-outer-spin-button,
-.amfc-atc__qty-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
+.amfc-atc__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ---------- حالت «در سبد شما» ---------- */
+
+.amfc-atc__incart { display: none; }
+
+.amfc-atc--incart .amfc-atc__addrow { display: none; }
+.amfc-atc--incart .amfc-atc__incart {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
 }
 
-.amfc-atc__qty:not(.amfc-atc__qty--stepper) {
-	padding: 0 8px;
+.amfc-atc__incart-info {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.amfc-atc__incart-title {
+	color: #5b6b8c;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.amfc-atc__incart-link {
+	color: #0077db;
+	font-size: 14px;
+	text-decoration: none;
+}
+
+.amfc-atc__control {
+	display: inline-flex;
+	align-items: center;
+	height: 60px;
+	padding: 0 6px;
+	border: 1px solid #eef0f6;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 4px 20px rgba(16, 24, 40, 0.08);
+}
+
+.amfc-atc__ctl {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 100%;
+	border: 0;
+	background: none;
+	cursor: pointer;
+	font-size: 24px;
+	line-height: 1;
+	transition: opacity 0.2s ease;
+}
+
+.amfc-atc__ctl--inc { color: #e6123d; }
+.amfc-atc__ctl-minus { color: #16265c; font-size: 24px; }
+.amfc-atc__ctl-trash { color: #e6123d; display: none; }
+
+/* وقتی تعداد ۱ است، دکمه کاهش → آیکون حذف */
+.amfc-atc__control.is-single .amfc-atc__ctl-minus { display: none; }
+.amfc-atc__control.is-single .amfc-atc__ctl-trash { display: inline-flex; }
+
+/* حالت حداکثر: دکمه + کم‌رنگ و غیرفعال */
+.amfc-atc__control.is-max .amfc-atc__ctl--inc {
+	opacity: 0.35;
+	pointer-events: none;
+}
+
+.amfc-atc__ctl-num {
+	position: relative;
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-width: 40px;
+	gap: 2px;
+}
+
+.amfc-atc__ctl-value {
+	font-size: 18px;
+	font-weight: 800;
+	color: #16265c;
+	line-height: 1;
+}
+
+.amfc-atc__ctl-max {
+	font-size: 10px;
+	font-weight: 600;
+	color: #9aa3b2;
+	line-height: 1;
+}
+
+/* لودر دایره‌ای هنگام تغییر تعداد: رنگ پررنگ از انتها حول ۳۶۰ درجه حذف می‌شود.
+   انیمیشن زاویه با @property نرم می‌شود؛ در مرورگرهای قدیمی چرخش ساده fallback است. */
+@property --amfc-ang {
+	syntax: '<angle>';
+	inherits: false;
+	initial-value: 360deg;
+}
+
+.amfc-atc__ctl-loader {
+	--amfc-ang: 360deg;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	color: #16265c;
+	background: conic-gradient(currentColor var(--amfc-ang), rgba(0, 0, 0, 0.08) 0deg);
+	-webkit-mask: radial-gradient(closest-side, transparent 62%, #000 63%);
+	mask: radial-gradient(closest-side, transparent 62%, #000 63%);
+	animation: amfc-deplete 0.9s linear infinite, amfc-spin 0.9s linear infinite;
+}
+
+@keyframes amfc-deplete {
+	from { --amfc-ang: 360deg; }
+	to   { --amfc-ang: 0deg; }
 }
 
 /* پیام ادیتور */
@@ -126,4 +352,9 @@
 	color: #c00;
 	font-size: 13px;
 	text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.amfc-atc__btn-loader,
+	.amfc-atc__ctl-loader { animation-duration: 0.01ms; }
 }

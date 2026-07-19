@@ -204,6 +204,15 @@
 		document.head.appendChild(script);
 	}
 
+	/* ---------------- قرارداد داخلی افزونه ---------------- */
+
+	// ویجت افزودن/کنترل سبد بعد از add/update عددِ معتبرِ سرور را اینجا می‌فرستد
+	document.addEventListener('almasara:cart_count', function (e) {
+		if (e.detail && typeof e.detail.count !== 'undefined') {
+			setCount(parseInt(e.detail.count, 10) || 0);
+		}
+	});
+
 	/* ---------------- شروع ---------------- */
 
 	function init() {
