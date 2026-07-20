@@ -501,34 +501,144 @@ class Add_To_Cart extends Widget_Base {
             'condition' => ['show_price' => 'yes'],
         ]);
 
+        /* ---- چیدمان ردیف قیمت ---- */
+        $this->add_control('heading_price_layout', [
+            'label' => __('چیدمان', 'almasara-fast-cart'),
+            'type'  => Controls_Manager::HEADING,
+        ]);
+
+        $this->add_responsive_control('price_direction', [
+            'label'                => __('جهت', 'almasara-fast-cart'),
+            'type'                 => Controls_Manager::CHOOSE,
+            'default'              => 'row',
+            'options'              => [
+                'row'         => ['title' => __('افقی', 'almasara-fast-cart'), 'icon' => 'eicon-arrow-left'],
+                'row-reverse' => ['title' => __('افقی معکوس', 'almasara-fast-cart'), 'icon' => 'eicon-arrow-right'],
+                'column'      => ['title' => __('عمودی', 'almasara-fast-cart'), 'icon' => 'eicon-arrow-down'],
+            ],
+            'selectors_dictionary' => [
+                'row'         => 'flex-direction: row;',
+                'row-reverse' => 'flex-direction: row-reverse;',
+                'column'      => 'flex-direction: column;',
+            ],
+            'selectors'            => ['{{WRAPPER}} .amfc-atc__price-box' => '{{VALUE}}'],
+        ]);
+
+        $this->add_responsive_control('price_justify', [
+            'label'       => __('توزیع افقی', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::CHOOSE,
+            'default'     => 'flex-start',
+            'options'     => [
+                'flex-start'    => ['title' => __('شروع', 'almasara-fast-cart'), 'icon' => 'eicon-flex eicon-justify-start-h'],
+                'center'        => ['title' => __('وسط', 'almasara-fast-cart'), 'icon' => 'eicon-flex eicon-justify-center-h'],
+                'flex-end'      => ['title' => __('پایان', 'almasara-fast-cart'), 'icon' => 'eicon-flex eicon-justify-end-h'],
+                'space-between' => ['title' => __('دو سرِ کادر', 'almasara-fast-cart'), 'icon' => 'eicon-flex eicon-justify-space-between-h'],
+            ],
+            'description' => __('با «دو سرِ کادر» بج تخفیف و قیمت به دو طرف عرض کادر می‌چسبند — مثل دیزاین.', 'almasara-fast-cart'),
+            'selectors'   => ['{{WRAPPER}} .amfc-atc__price-box' => 'justify-content: {{VALUE}};'],
+        ]);
+
+        $this->add_responsive_control('price_align_v', [
+            'label'     => __('تراز عمودی', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::CHOOSE,
+            'default'   => 'center',
+            'options'   => [
+                'flex-start' => ['title' => __('بالا', 'almasara-fast-cart'), 'icon' => 'eicon-v-align-top'],
+                'center'     => ['title' => __('وسط', 'almasara-fast-cart'), 'icon' => 'eicon-v-align-middle'],
+                'baseline'   => ['title' => __('خط کرسی', 'almasara-fast-cart'), 'icon' => 'eicon-align-stretch-v'],
+                'flex-end'   => ['title' => __('پایین', 'almasara-fast-cart'), 'icon' => 'eicon-v-align-bottom'],
+            ],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__price-box' => 'align-items: {{VALUE}};'],
+        ]);
+
+        $this->add_responsive_control('price_gap', [
+            'label'      => __('فاصله بین اجزا', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px', 'em'],
+            'range'      => ['px' => ['min' => 0, 'max' => 40]],
+            'default'    => ['size' => 10, 'unit' => 'px'],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__price-box' => 'gap: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        /* ---- قیمت نهایی ---- */
+        $this->add_control('heading_price_final', [
+            'label'     => __('قیمت نهایی', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
         $this->add_group_control(Group_Control_Typography::get_type(), [
             'name'     => 'price_typo',
-            'label'    => __('تایپوگرافی قیمت نهایی', 'almasara-fast-cart'),
             'selector' => '{{WRAPPER}} .amfc-atc__final',
         ]);
 
         $this->add_control('price_color', [
-            'label'     => __('رنگ قیمت نهایی', 'almasara-fast-cart'),
+            'label'     => __('رنگ', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__final' => 'color: {{VALUE}};'],
         ]);
 
+        /* ---- واحد پول ---- */
+        $this->add_control('heading_price_currency', [
+            'label'     => __('واحد پول', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'currency_typo',
+            'selector' => '{{WRAPPER}} .amfc-atc__currency',
+        ]);
+
         $this->add_control('currency_color', [
-            'label'     => __('رنگ واحد پول', 'almasara-fast-cart'),
+            'label'     => __('رنگ', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__currency' => 'color: {{VALUE}};'],
         ]);
 
+        /* ---- قیمت خط‌خورده ---- */
+        $this->add_control('heading_price_regular', [
+            'label'     => __('قیمت خط‌خورده', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'regular_typo',
+            'selector' => '{{WRAPPER}} .amfc-atc__regular',
+        ]);
+
         $this->add_control('regular_color', [
-            'label'     => __('رنگ قیمت خط‌خورده', 'almasara-fast-cart'),
+            'label'     => __('رنگ', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__regular' => 'color: {{VALUE}};'],
         ]);
 
+        /* ---- بج تخفیف ---- */
         $this->add_control('heading_discount', [
             'label'     => __('بج تخفیف', 'almasara-fast-cart'),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
+        ]);
+
+        $this->add_control('discount_position', [
+            'label'                => __('موقعیت بج', 'almasara-fast-cart'),
+            'type'                 => Controls_Manager::CHOOSE,
+            'default'              => 'start',
+            'options'              => [
+                'start' => ['title' => __('ابتدای ردیف', 'almasara-fast-cart'), 'icon' => 'eicon-order-start'],
+                'end'   => ['title' => __('انتهای ردیف', 'almasara-fast-cart'), 'icon' => 'eicon-order-end'],
+            ],
+            'selectors_dictionary' => [
+                'start' => 'order: -1;',
+                'end'   => 'order: 10;',
+            ],
+            'selectors'            => ['{{WRAPPER}} .amfc-atc__discount' => '{{VALUE}}'],
+        ]);
+
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'discount_typo',
+            'selector' => '{{WRAPPER}} .amfc-atc__discount',
         ]);
 
         $this->add_control('discount_color', [
@@ -543,8 +653,17 @@ class Add_To_Cart extends Widget_Base {
             'selectors' => ['{{WRAPPER}} .amfc-atc__discount' => 'background-color: {{VALUE}};'],
         ]);
 
+        $this->add_responsive_control('discount_padding', [
+            'label'      => __('پدینگ', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__discount' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
         $this->add_responsive_control('discount_radius', [
-            'label'      => __('رادیوس بج', 'almasara-fast-cart'),
+            'label'      => __('رادیوس', 'almasara-fast-cart'),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => 0, 'max' => 30]],

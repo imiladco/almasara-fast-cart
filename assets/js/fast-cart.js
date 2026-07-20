@@ -59,6 +59,10 @@
 		if (channel && !fromRemote) {
 			channel.postMessage({ type: 'count', value: count });
 		}
+		// آینه محلی (IndexedDB) — هیدریت آنیِ لود بعدی
+		if (window.AMFCStore && !fromRemote) {
+			window.AMFCStore.merge({ count: count });
+		}
 	}
 
 	if (channel) {
@@ -181,6 +185,14 @@
 	/* ---------------- شروع ---------------- */
 
 	function init() {
+		// هیدریت آنی: اول آینه محلی (اگر کوکی در دسترس نبود)، بعد کوکی مرجع
+		if (window.AMFCStore && !getCookie(COUNT_COOKIE)) {
+			window.AMFCStore.get().then(function (snap) {
+				if (snap && lastCount < 0) {
+					setCount(snap.count, true);
+				}
+			});
+		}
 		reconcileFromCookie();
 		injectSpeculationRules();
 	}

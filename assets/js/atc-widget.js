@@ -31,6 +31,12 @@
 		return roots;
 	}
 
+	function persistItems() {
+		if (window.AMFCStore) {
+			window.AMFCStore.merge({ items: itemsMap });
+		}
+	}
+
 	function loadItems(force) {
 		if (itemsPromise && !force) {
 			return itemsPromise;
@@ -44,9 +50,10 @@
 						key: it.key, quantity: it.quantity, max: it.max
 					};
 				});
+				persistItems();
 				return itemsMap;
 			})
-			.catch(function () { itemsMap = {}; return itemsMap; });
+			.catch(function () { return itemsMap; });
 		return itemsPromise;
 	}
 
@@ -154,6 +161,7 @@
 				itemsMap[mapKey(pid, body.variation_id || 0)] = {
 					key: res.data.key, quantity: res.data.quantity, max: res.data.max
 				};
+				persistItems();
 				emit('almasara:cart_count', { count: res.data.count });
 				emit('almasara:added_to_cart', {
 					productId: pid, variationId: body.variation_id || 0, quantity: body.quantity
@@ -192,6 +200,7 @@
 				itemsMap[mapKey(target.pid, target.vid)].quantity = res.data.quantity;
 				itemsMap[mapKey(target.pid, target.vid)].max = res.data.max;
 			}
+			persistItems();
 			emit('almasara:cart_count', { count: res.data.count });
 			refreshAll();
 		}).catch(function () {
@@ -310,8 +319,23 @@
 
 	/* ---------------- init ---------------- */
 
+	var hydrated = false;
+
 	function initAll(scope) {
 		(scope || document).querySelectorAll('.amfc-atc').forEach(setup);
+
+		// هیدریت آنی حالت «در سبد» از آینه محلی (IndexedDB) — بدون انتظار شبکه؛
+		// سپس revalidate پس‌زمینه از سرور (stale-while-revalidate)
+		if (!hydrated && window.AMFCStore) {
+			hydrated = true;
+			window.AMFCStore.get().then(function (snap) {
+				if (snap && snap.items && !Object.keys(itemsMap).length) {
+					itemsMap = snap.items;
+					refreshAll();
+				}
+			});
+		}
+
 		loadItems().then(refreshAll);
 	}
 

@@ -25,7 +25,8 @@ final class Assets {
         $settings = Settings::get();
 
         wp_enqueue_style('amfc', AMFC_URL . 'assets/css/fast-cart.css', [], AMFC_VERSION);
-        wp_enqueue_script('amfc', AMFC_URL . 'assets/js/fast-cart.js', [], AMFC_VERSION, true);
+        wp_enqueue_script('amfc-store', AMFC_URL . 'assets/js/cart-store.js', [], AMFC_VERSION, true);
+        wp_enqueue_script('amfc', AMFC_URL . 'assets/js/fast-cart.js', ['amfc-store'], AMFC_VERSION, true);
 
         wp_localize_script('amfc', 'AMFC', [
             'restBase'      => esc_url_raw(rest_url('almasara-cart/v1')),
