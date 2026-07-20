@@ -1,20 +1,27 @@
 /**
- * Almasara Fast Cart — لایه خوش‌بینانه افزودن به سبد (رسپی ۱+)
+ * Almasara Fast Cart — لایه خوش‌بینانه (هسته، مستقل از المنتور)
  *
- * اصل: لایه بهبود روی مکانیزم بومی ووکامرس، نه جایگزین آن. اگر افزونه
- * غیرفعال شود، افزودن به سبدِ استاندارد ووکامرس دست‌نخورده کار می‌کند.
+ * - هیدریت بج از کوکی بومی woocommerce_items_in_cart (ضد کش صفحه، بدون سرور)
+ * - افزایش خوش‌بینانه برای دکمه‌های بومی ووکامرس با event delegation
+ * - آشتی با کوکی روی رویداد بومی added_to_cart
+ * - sync چندتب با BroadcastChannel
+ * - toast متمرکز: هر افزودنی (بومی یا ویجت) رویداد almasara:added_to_cart
+ *   می‌فرستد و فقط اینجا toast نشان داده می‌شود (بدون دوبار نمایش)
+ * - پیش‌بارگذاری صفحه سبد با Speculation Rules
  *
- * شامل: هیدریت بج از کوکی بومی (ضد کش)، افزایش خوش‌بینانه با event
- * delegation، آشتی با کوکی روی رویداد added_to_cart، sync چندتب با
- * BroadcastChannel، رویداد سفارشی برای آنالیتیکس، و پیش‌بارگذاری صفحه سبد.
+ * بدون نانس REST: هویت با کوکی سشن ووکامرس منتقل می‌شود (مثل wc-ajax)؛
+ * نانسِ جاسازی‌شده در صفحه کش‌شده بعد از انقضا همه‌چیز را 403 می‌کرد.
  */
 (function () {
 	'use strict';
 
 	var CFG = window.AMFC || {};
 	var COUNT_COOKIE = 'woocommerce_items_in_cart';
+	var FA = '۰۱۲۳۴۵۶۷۸۹';
 
-	/* ---------------- ابزارها ---------------- */
+	function toFa(n) {
+		return String(n).replace(/\d/g, function (d) { return FA[d]; });
+	}
 
 	function getCookie(name) {
 		var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -23,11 +30,6 @@
 
 	function cartCountFromCookie() {
 		return parseInt(getCookie(COUNT_COOKIE), 10) || 0;
-	}
-
-	var FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-	function toFa(n) {
-		return String(n).replace(/\d/g, function (d) { return FA[d]; });
 	}
 
 	/* ---------------- بج شمارنده ---------------- */
@@ -45,7 +47,6 @@
 		}
 	}
 
-	// channel بین تب‌ها؛ set محلی broadcast می‌کند، دریافت فقط رنگ می‌کند
 	var channel = ('BroadcastChannel' in window) ? new BroadcastChannel('almasara-fast-cart') : null;
 
 	function setCount(count, fromRemote) {
@@ -68,30 +69,8 @@
 		};
 	}
 
-	/* ---------------- آشتی با سرور ---------------- */
-
-	// منبع حقیقت فوری = کوکی بومی ووکامرس (کش نمی‌شود، بدون nonce)
 	function reconcileFromCookie() {
 		setCount(cartCountFromCookie());
-	}
-
-	// خلاصه دقیق (جمع کل/مینی‌کارت) از endpoint سبک — فقط وقتی لازم شد
-	function fetchSummary() {
-		if (!CFG.summaryUrl) {
-			return Promise.resolve(null);
-		}
-		return fetch(CFG.summaryUrl, {
-			credentials: 'same-origin',
-			headers: { 'X-WP-Nonce': CFG.nonce || '' }
-		})
-			.then(function (r) { return r.ok ? r.json() : null; })
-			.then(function (data) {
-				if (data && typeof data.count !== 'undefined') {
-					setCount(data.count);
-				}
-				return data;
-			})
-			.catch(function () { return null; });
 	}
 
 	/* ---------------- اعلان (Toast) ---------------- */
@@ -99,8 +78,8 @@
 	var toastEl = null;
 	var toastTimer = null;
 
-	function toast(msg) {
-		if (!CFG.toast || !CFG.toast.enabled) {
+	function toast(msg, isError) {
+		if (!msg || (!isError && (!CFG.toast || !CFG.toast.enabled))) {
 			return;
 		}
 		if (!toastEl) {
@@ -111,6 +90,7 @@
 			document.body.appendChild(toastEl);
 		}
 		toastEl.textContent = msg;
+		toastEl.classList.toggle('is-error', !!isError);
 		toastEl.classList.add('is-visible');
 		clearTimeout(toastTimer);
 		toastTimer = setTimeout(function () {
@@ -118,15 +98,9 @@
 		}, 2500);
 	}
 
-	/* ---------------- افزودن خوش‌بینانه ---------------- */
-
-	function isVerifiedOK() {
-		// گیت تأیید هویت پوسته: اگر صراحتاً false بود، دخالت نکن (ریدایرکت پوسته)
-		return window.isVerified !== false;
-	}
+	/* ---------------- افزودن خوش‌بینانه (دکمه‌های بومی) ---------------- */
 
 	function readQty(button) {
-		// آرشیو: data-quantity؛ صفحه محصول: input.qty نزدیک دکمه
 		var q = parseInt(button.getAttribute('data-quantity'), 10);
 		if (q > 0) {
 			return q;
@@ -137,53 +111,57 @@
 		return q > 0 ? q : 1;
 	}
 
-	function optimisticAdd(button) {
-		if (!isVerifiedOK()) {
-			return; // بگذار رفتار پوسته (ریدایرکت به verify) اجرا شود
-		}
-		var qty = readQty(button);
-		setCount(lastCount + qty);
-		toast((CFG.toast && CFG.toast.text) || (CFG.i18n && CFG.i18n.added) || '');
-
-		// رویداد سفارشی برای آنالیتیکس (GA4/Pixel/یکتانت به این گوش دهند)
-		document.dispatchEvent(new CustomEvent('almasara:added_to_cart', {
-			detail: {
-				productId: button.getAttribute('data-product_id') || null,
-				quantity: qty
-			}
-		}));
-	}
-
-	// event delegation: دکمه‌های حال و آینده (quick-view، صفحه‌بندی ایجکسی، ویجت‌ها)
+	// event delegation: دکمه‌های حال و آینده (آرشیو، quick-view، صفحه‌بندی ایجکسی)
 	document.addEventListener('click', function (e) {
-		var button = e.target.closest('.add_to_cart_button:not(.product_type_variable), .single_add_to_cart_button');
+		var button = e.target.closest('.add_to_cart_button.ajax_add_to_cart:not(.product_type_variable)');
 		if (!button || button.classList.contains('disabled')) {
 			return;
 		}
-		optimisticAdd(button);
+		var qty = readQty(button);
+		setCount(Math.max(0, lastCount) + qty);
+		document.dispatchEvent(new CustomEvent('almasara:added_to_cart', {
+			detail: {
+				productId: button.getAttribute('data-product_id') || null,
+				quantity: qty,
+				optimistic: true
+			}
+		}));
 	}, true);
 
-	/* ---------------- گوش به رویداد بومی ووکامرس ---------------- */
+	/* ---------------- رویدادهای هماهنگی ---------------- */
 
-	// ووکامرس رویدادهایش را با jQuery روی body می‌زند؛ فرصت‌طلبانه هوک می‌کنیم
+	// toast متمرکز + آنالیتیکس‌پسند: هر افزودنی این رویداد را می‌فرستد
+	document.addEventListener('almasara:added_to_cart', function () {
+		toast((CFG.toast && CFG.toast.text) || (CFG.i18n && CFG.i18n.added) || '');
+	});
+
+	// خطاها (از ویجت یا هر مصرف‌کننده دیگر)
+	document.addEventListener('almasara:cart_error', function (e) {
+		toast((e.detail && e.detail.message) || (CFG.i18n && CFG.i18n.addFailed) || '', true);
+	});
+
+	// عددِ معتبرِ سرور بعد از add/update ویجت
+	document.addEventListener('almasara:cart_count', function (e) {
+		if (e.detail && typeof e.detail.count !== 'undefined') {
+			setCount(parseInt(e.detail.count, 10) || 0);
+		}
+	});
+
+	// آشتی بعد از افزودن بومی ووکامرس (کوکی به‌روز شده)
 	if (window.jQuery) {
-		window.jQuery(document.body).on('added_to_cart', function () {
-			// کوکی توسط ووکامرس به‌روز شده؛ عدد دقیق را جایگزین افزایش خوش‌بینانه کن
-			reconcileFromCookie();
-		});
-		window.jQuery(document.body).on('wc_fragments_refreshed wc_fragments_loaded', function () {
+		window.jQuery(document.body).on('added_to_cart wc_fragments_refreshed wc_fragments_loaded', function () {
 			reconcileFromCookie();
 		});
 	}
 
-	// اگر تب دوباره فوکوس شد، ممکن است سبد در تب دیگری عوض شده باشد
+	// برگشت فوکوس به تب: شاید سبد در تب/صفحه دیگری عوض شده باشد
 	document.addEventListener('visibilitychange', function () {
 		if (!document.hidden) {
 			reconcileFromCookie();
 		}
 	});
 
-	/* ---------------- پیش‌بارگذاری صفحه سبد (Speculation Rules) ---------------- */
+	/* ---------------- پیش‌بارگذاری صفحه سبد ---------------- */
 
 	function injectSpeculationRules() {
 		if (!CFG.prefetch || !CFG.cartUrl) {
@@ -195,28 +173,15 @@
 		var script = document.createElement('script');
 		script.type = 'speculationrules';
 		script.textContent = JSON.stringify({
-			prerender: [{
-				source: 'list',
-				urls: [CFG.cartUrl],
-				eagerness: 'moderate'
-			}]
+			prerender: [{ source: 'list', urls: [CFG.cartUrl], eagerness: 'moderate' }]
 		});
 		document.head.appendChild(script);
 	}
 
-	/* ---------------- قرارداد داخلی افزونه ---------------- */
-
-	// ویجت افزودن/کنترل سبد بعد از add/update عددِ معتبرِ سرور را اینجا می‌فرستد
-	document.addEventListener('almasara:cart_count', function (e) {
-		if (e.detail && typeof e.detail.count !== 'undefined') {
-			setCount(parseInt(e.detail.count, 10) || 0);
-		}
-	});
-
 	/* ---------------- شروع ---------------- */
 
 	function init() {
-		reconcileFromCookie(); // بج آنی از کوکی، ضد کش، بدون درخواست سرور
+		reconcileFromCookie();
 		injectSpeculationRules();
 	}
 

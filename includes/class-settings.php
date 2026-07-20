@@ -6,12 +6,10 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * تنظیمات افزونه — زیرمنوی ووکامرس.
+ * تنظیمات افزونه — زیرمنوی ووکامرس → «سبد سریع».
  *
- * «سلکتور شمارنده» قرارداد بین افزونه و پوسته است: افزونه عددِ تازه را در
- * هر عنصری که این سلکتور را دارد می‌نویسد. پیش‌فرض روی کلاس قراردادیِ
- * .amfc-count است؛ در پوسته این کلاس را به محل‌های شمارنده سبد بدهید یا
- * سلکتور واقعی پوسته را همین‌جا وارد کنید.
+ * «سلکتور شمارنده» قرارداد بین افزونه و پوسته است: افزونه عددِ تازه سبد را
+ * در هر عنصری که این سلکتور را دارد می‌نویسد (پیش‌فرض: .amfc-count).
  */
 final class Settings {
 
@@ -63,11 +61,11 @@ final class Settings {
         if (isset($input['count_selector'])) {
             $out['count_selector'] = sanitize_text_field($input['count_selector']);
         }
-        $out['toast_enabled']    = (isset($input['toast_enabled']) && 'yes' === $input['toast_enabled']) ? 'yes' : 'no';
-        $out['prefetch_enabled'] = (isset($input['prefetch_enabled']) && 'yes' === $input['prefetch_enabled']) ? 'yes' : 'no';
         if (isset($input['toast_text'])) {
             $out['toast_text'] = sanitize_text_field($input['toast_text']);
         }
+        $out['toast_enabled']    = !empty($input['toast_enabled']) ? 'yes' : 'no';
+        $out['prefetch_enabled'] = !empty($input['prefetch_enabled']) ? 'yes' : 'no';
         return $out;
     }
 
@@ -83,7 +81,7 @@ final class Settings {
                         <th scope="row"><label for="amfc_count_selector"><?php esc_html_e('سلکتور شمارنده سبد', 'almasara-fast-cart'); ?></label></th>
                         <td>
                             <input name="<?php echo esc_attr(self::OPTION); ?>[count_selector]" id="amfc_count_selector" type="text" class="regular-text" value="<?php echo esc_attr($s['count_selector']); ?>" />
-                            <p class="description"><?php esc_html_e('عنصرهایی که تعداد سبد باید در آن‌ها نوشته شود. کلاس amfc-count را در پوسته به این عناصر بدهید یا سلکتور واقعی پوسته را وارد کنید.', 'almasara-fast-cart'); ?></p>
+                            <p class="description"><?php esc_html_e('عنصرهایی که تعداد سبد باید در آن‌ها نوشته شود. در پوسته کلاس amfc-count را به این عناصر بدهید یا سلکتور واقعی پوسته را وارد کنید.', 'almasara-fast-cart'); ?></p>
                         </td>
                     </tr>
                     <tr>

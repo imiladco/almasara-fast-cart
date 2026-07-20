@@ -27,6 +27,11 @@
 	transform: translateY(0);
 }
 
+/* حالت خطا (رد شدن افزودن: ناموجودی، خطای شبکه و ...) */
+.amfc-toast.is-error {
+	background-color: #e5484d;
+}
+
 /* بج شمارنده — پایه؛ نمایش/مخفی بر اساس وجود آیتم */
 .amfc-count:not(.amfc-has-items):empty {
 	display: none;

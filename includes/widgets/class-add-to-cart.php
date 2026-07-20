@@ -15,10 +15,15 @@ if (!defined('ABSPATH')) {
 /**
  * ویجت «افزودن به سبد» — افزونه سبد سریع الماسارا.
  *
- * پشتیبانی از محصولات ساده و متغیر (افزودن مستقیم واریانت)، قیمت با بج تخفیف،
- * و جایگزینی خودکار دکمه با کنترل «در سبد شما» وقتی محصول/واریانت در سبد است.
- * افزودن/تغییر تعداد از REST همین افزونه (که توابع بومی ووکامرس را صدا می‌زند)
- * انجام می‌شود؛ بجِ سبد از طریق fast-cart.js به‌روز می‌شود. همه در یک افزونه.
+ * محصولات ساده و متغیر (افزودن مستقیم واریانت)، قیمت با بج تخفیف، و
+ * جایگزینی خودکار دکمه با کنترل «در سبد شما» وقتی محصول/واریانت در سبد است.
+ *
+ * نکات فنی مهم:
+ * - کانتینر سلکت‌های واریانت باید کلاس «variations» داشته باشد؛ اسکریپت
+ *   بومی wc-add-to-cart-variation سلکت‌ها را با «.variations select» پیدا
+ *   می‌کند و بدون آن found_variation هرگز فایر نمی‌شود.
+ * - JSON واریانت‌ها باید دستی و با wc_esc_json چاپ شود؛ عبورش از
+ *   render attributes المنتور باعث escape دوباره و شکستن JSON می‌شود.
  */
 class Add_To_Cart extends Widget_Base {
 
@@ -89,14 +94,15 @@ class Add_To_Cart extends Widget_Base {
         ]);
 
         $this->add_control('show_icon', [
-            'label'   => __('نمایش آیکون', 'almasara-fast-cart'),
-            'type'    => Controls_Manager::SWITCHER,
+            'label' => __('نمایش آیکون', 'almasara-fast-cart'),
+            'type'  => Controls_Manager::SWITCHER,
         ]);
 
         $this->add_control('icon_image', [
             'label'       => __('آیکون سفارشی', 'almasara-fast-cart'),
             'type'        => Controls_Manager::MEDIA,
             'media_types' => ['image', 'svg'],
+            'description' => __('خالی = آیکون سبد پیش‌فرض. SVG به‌صورت inline و رنگ‌پذیر رندر می‌شود.', 'almasara-fast-cart'),
             'condition'   => ['show_icon' => 'yes'],
         ]);
 
@@ -133,9 +139,8 @@ class Add_To_Cart extends Widget_Base {
         ]);
 
         $this->add_control('show_quantity', [
-            'label'   => __('انتخابگر تعداد', 'almasara-fast-cart'),
-            'type'    => Controls_Manager::SWITCHER,
-            'default' => '',
+            'label' => __('انتخابگر تعداد', 'almasara-fast-cart'),
+            'type'  => Controls_Manager::SWITCHER,
         ]);
 
         $this->add_control('quantity_style', [
@@ -193,7 +198,11 @@ class Add_To_Cart extends Widget_Base {
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => 0, 'max' => 60]],
             'default'    => ['size' => 16, 'unit' => 'px'],
-            'selectors'  => ['{{WRAPPER}} .amfc-atc' => 'gap: {{SIZE}}{{UNIT}};'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc'                     => 'gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .amfc-atc__variations'         => 'gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .amfc-atc .single_variation_wrap' => 'gap: {{SIZE}}{{UNIT}};',
+            ],
         ]);
 
         $this->add_responsive_control('addrow_gap', [
@@ -233,7 +242,6 @@ class Add_To_Cart extends Widget_Base {
             'label'      => __('پدینگ', 'almasara-fast-cart'),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => ['px', 'em'],
-            'default'    => ['top' => 16, 'right' => 24, 'bottom' => 16, 'left' => 24, 'unit' => 'px'],
             'selectors'  => [
                 '{{WRAPPER}} .amfc-atc__btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
@@ -273,12 +281,10 @@ class Add_To_Cart extends Widget_Base {
             'name'     => 'btn_bg',
             'types'    => ['classic', 'gradient'],
             'selector' => '{{WRAPPER}} .amfc-atc__btn',
-            'fields_options' => ['background' => ['default' => 'classic'], 'color' => ['default' => '#16265c']],
         ]);
         $this->add_control('btn_color', [
             'label'     => __('رنگ متن و آیکون', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#ffffff',
             'selectors' => ['{{WRAPPER}} .amfc-atc__btn' => 'color: {{VALUE}};'],
         ]);
         $this->add_group_control(Group_Control_Border::get_type(), [
@@ -307,6 +313,13 @@ class Add_To_Cart extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__btn:hover' => 'border-color: {{VALUE}};'],
         ]);
+        $this->add_control('btn_transform_hover', [
+            'label'      => __('جابه‌جایی عمودی', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => -10, 'max' => 10]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__btn:hover' => 'transform: translateY({{SIZE}}px);'],
+        ]);
         $this->end_controls_tab();
 
         $this->end_controls_tabs();
@@ -332,6 +345,11 @@ class Add_To_Cart extends Widget_Base {
             'condition' => ['show_quantity' => 'yes'],
         ]);
 
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'qty_typography',
+            'selector' => '{{WRAPPER}} .amfc-atc__qty, {{WRAPPER}} .amfc-atc__qty-input',
+        ]);
+
         $this->add_responsive_control('qty_height', [
             'label'      => __('ارتفاع', 'almasara-fast-cart'),
             'type'       => Controls_Manager::SLIDER,
@@ -344,8 +362,9 @@ class Add_To_Cart extends Widget_Base {
             'label'     => __('رنگ متن', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => [
-                '{{WRAPPER}} .amfc-atc__qty' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .amfc-atc__qty'       => 'color: {{VALUE}};',
                 '{{WRAPPER}} .amfc-atc__qty-input' => 'color: {{VALUE}};',
+                '{{WRAPPER}} .amfc-atc__step'      => 'color: {{VALUE}};',
             ],
         ]);
 
@@ -356,8 +375,8 @@ class Add_To_Cart extends Widget_Base {
         ]);
 
         $this->add_group_control(Group_Control_Border::get_type(), [
-            'name'      => 'qty_border',
-            'selector'  => '{{WRAPPER}} .amfc-atc__qty',
+            'name'     => 'qty_border',
+            'selector' => '{{WRAPPER}} .amfc-atc__qty',
         ]);
 
         $this->add_responsive_control('qty_radius', [
@@ -417,28 +436,24 @@ class Add_To_Cart extends Widget_Base {
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => 32, 'max' => 80]],
-            'default'    => ['size' => 52, 'unit' => 'px'],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__attr select' => 'height: {{SIZE}}{{UNIT}};'],
         ]);
 
         $this->add_control('select_color', [
             'label'     => __('رنگ متن', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#16265c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__attr select' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('select_bg', [
             'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#eef1f9',
             'selectors' => ['{{WRAPPER}} .amfc-atc__attr select' => 'background-color: {{VALUE}};'],
         ]);
 
         $this->add_control('select_arrow_color', [
             'label'     => __('رنگ فلش', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#16265c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__attr' => '--amfc-arrow: {{VALUE}};'],
         ]);
 
@@ -451,21 +466,27 @@ class Add_To_Cart extends Widget_Base {
             'label'      => __('رادیوس', 'almasara-fast-cart'),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => ['px'],
-            'default'    => ['top' => 10, 'right' => 10, 'bottom' => 10, 'left' => 10, 'unit' => 'px'],
             'selectors'  => [
                 '{{WRAPPER}} .amfc-atc__attr select' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
         ]);
 
-        $this->add_control('reset_color', [
-            'label'     => __('رنگ «حذف انتخاب»', 'almasara-fast-cart'),
-            'type'      => Controls_Manager::COLOR,
-            'default'   => '#e5484d',
+        $this->add_control('heading_reset', [
+            'label'     => __('دکمه «حذف انتخاب»', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
-            'selectors' => [
-                '{{WRAPPER}} .amfc-atc__reset' => 'color: {{VALUE}};',
-                '{{WRAPPER}} .amfc-atc__reset' => 'background-color: {{VALUE}}1a; color: {{VALUE}};',
-            ],
+        ]);
+
+        $this->add_control('reset_color', [
+            'label'     => __('رنگ متن', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__reset' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('reset_bg', [
+            'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__reset' => 'background-color: {{VALUE}};'],
         ]);
 
         $this->end_controls_section();
@@ -489,7 +510,6 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('price_color', [
             'label'     => __('رنگ قیمت نهایی', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#16265c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__final' => 'color: {{VALUE}};'],
         ]);
 
@@ -502,7 +522,6 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('regular_color', [
             'label'     => __('رنگ قیمت خط‌خورده', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#9aa3b2',
             'selectors' => ['{{WRAPPER}} .amfc-atc__regular' => 'color: {{VALUE}};'],
         ]);
 
@@ -515,14 +534,12 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('discount_color', [
             'label'     => __('رنگ متن', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#ffffff',
             'selectors' => ['{{WRAPPER}} .amfc-atc__discount' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('discount_bg', [
             'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#e6123d',
             'selectors' => ['{{WRAPPER}} .amfc-atc__discount' => 'background-color: {{VALUE}};'],
         ]);
 
@@ -531,7 +548,6 @@ class Add_To_Cart extends Widget_Base {
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => 0, 'max' => 30]],
-            'default'    => ['size' => 8, 'unit' => 'px'],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__discount' => 'border-radius: {{SIZE}}{{UNIT}};'],
         ]);
 
@@ -555,14 +571,12 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('incart_title_color', [
             'label'     => __('رنگ عنوان', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#5b6b8c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__incart-title' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('view_link_color', [
             'label'     => __('رنگ لینک مشاهده سبد', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#0077db',
             'selectors' => ['{{WRAPPER}} .amfc-atc__incart-link' => 'color: {{VALUE}};'],
         ]);
 
@@ -575,7 +589,6 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('control_bg', [
             'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#ffffff',
             'selectors' => ['{{WRAPPER}} .amfc-atc__control' => 'background-color: {{VALUE}};'],
         ]);
 
@@ -588,7 +601,6 @@ class Add_To_Cart extends Widget_Base {
             'label'      => __('رادیوس', 'almasara-fast-cart'),
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => ['px'],
-            'default'    => ['top' => 14, 'right' => 14, 'bottom' => 14, 'left' => 14, 'unit' => 'px'],
             'selectors'  => [
                 '{{WRAPPER}} .amfc-atc__control' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
@@ -604,7 +616,6 @@ class Add_To_Cart extends Widget_Base {
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => 40, 'max' => 90]],
-            'default'    => ['size' => 60, 'unit' => 'px'],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__control' => 'height: {{SIZE}}{{UNIT}};'],
         ]);
 
@@ -618,42 +629,36 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('num_color', [
             'label'     => __('رنگ عدد', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#16265c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl-value' => 'color: {{VALUE}};'],
         ]);
 
-        $this->add_control('ctl_color', [
+        $this->add_control('inc_color', [
             'label'     => __('رنگ دکمه +', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#e6123d',
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl--inc' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('minus_color', [
             'label'     => __('رنگ دکمه −', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#16265c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl-minus' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('trash_color', [
             'label'     => __('رنگ آیکون حذف', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#e6123d',
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl-trash' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('loader_color', [
             'label'     => __('رنگ لودر', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#16265c',
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl-loader' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('max_color', [
             'label'     => __('رنگ متن حداکثر', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'default'   => '#9aa3b2',
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl-max' => 'color: {{VALUE}};'],
         ]);
 
@@ -675,28 +680,22 @@ class Add_To_Cart extends Widget_Base {
             return;
         }
 
-        $type        = $product->get_type();
-        $is_variable = $product->is_type('variable');
+        $type = $product->get_type();
 
-        $this->add_render_attribute('root', [
-            'class'             => ['amfc-atc', 'amfc-atc--' . $type],
-            'data-product'      => (string) $product->get_id(),
-            'data-type'         => $type,
-            'data-cart-url'     => esc_url(wc_get_cart_url()),
-            'data-incart-title' => esc_attr($settings['incart_title']),
-            'data-view-text'    => esc_attr($settings['view_cart_text']),
-            'data-max-text'     => esc_attr($settings['max_text']),
-        ]);
+        printf(
+            '<div class="amfc-atc amfc-atc--%1$s" data-product="%2$d" data-type="%1$s" data-max-text="%3$s">',
+            esc_attr($type),
+            (int) $product->get_id(),
+            esc_attr($settings['max_text'])
+        );
 
-        echo '<div ' . $this->get_render_attribute_string('root') . '>';
-
-        if ($is_variable) {
+        if ($product->is_type('variable')) {
             $this->render_variable($settings, $product);
         } else {
             $this->render_simple($settings, $product);
         }
 
-        $this->render_incart_control($settings, $product);
+        $this->render_incart_control($settings);
 
         echo '</div>';
     }
@@ -712,29 +711,30 @@ class Add_To_Cart extends Widget_Base {
         echo '</div>';
     }
 
-    /** محصول متغیر: فرم واریانت‌ها (WC) + قیمت داینامیک + ردیف افزودن */
+    /** محصول متغیر: فرم واریانت (سازگار با اسکریپت بومی WC) + قیمت داینامیک */
     private function render_variable(array $settings, $product): void {
         $attributes = $product->get_variation_attributes();
         $available  = $product->get_available_variations();
 
-        $this->add_render_attribute('form', [
-            'class'                 => ['variations_form', 'amfc-atc__variations'],
-            'action'                => esc_url($product->get_permalink()),
-            'method'                => 'post',
-            'enctype'               => 'multipart/form-data',
-            'data-product_id'       => (string) $product->get_id(),
-            'data-product_variations' => wc_esc_json(wp_json_encode($available)),
-        ]);
+        // فرم دستی چاپ می‌شود: JSON واریانت‌ها نباید از esc_attr المنتور رد شود
+        printf(
+            '<form class="variations_form amfc-atc__variations" action="%s" method="post" enctype="multipart/form-data" data-product_id="%d" data-product_variations="%s">',
+            esc_url($product->get_permalink()),
+            (int) $product->get_id(),
+            wc_esc_json(wp_json_encode($available)) // phpcs:ignore WordPress.Security.EscapeOutput
+        );
 
-        echo '<form ' . $this->get_render_attribute_string('form') . '>';
-
-        echo '<div class="amfc-atc__attrs">';
+        // کلاس «variations» الزامی است: اسکریپت WC سلکت‌ها را با .variations select پیدا می‌کند
+        echo '<div class="variations amfc-atc__attrs">';
         foreach ($attributes as $attribute_name => $options) {
             echo '<div class="amfc-atc__attr">';
             echo '<label class="amfc-atc__attr-label">' . esc_html(wc_attribute_label($attribute_name)) . '</label>';
-            $selected = isset($_REQUEST['attribute_' . sanitize_title($attribute_name)])
-                ? wc_clean(wp_unslash($_REQUEST['attribute_' . sanitize_title($attribute_name)]))
+
+            $request_key = 'attribute_' . sanitize_title($attribute_name);
+            $selected    = isset($_REQUEST[$request_key]) // phpcs:ignore WordPress.Security.NonceVerification
+                ? wc_clean(wp_unslash($_REQUEST[$request_key])) // phpcs:ignore WordPress.Security.NonceVerification
                 : $product->get_variation_default_attribute($attribute_name);
+
             wc_dropdown_variation_attribute_options([
                 'options'          => $options,
                 'attribute'        => $attribute_name,
@@ -746,7 +746,11 @@ class Add_To_Cart extends Widget_Base {
         }
         echo '</div>';
 
-        printf('<a class="amfc-atc__reset reset_variations" href="#">%s</a>', esc_html($settings['reset_text']));
+        printf(
+            '<a class="amfc-atc__reset reset_variations" href="#" aria-label="%s">%s</a>',
+            esc_attr($settings['reset_text']),
+            esc_html($settings['reset_text'])
+        );
 
         echo '<div class="single_variation_wrap">';
         if ('yes' === $settings['show_price']) {
@@ -785,21 +789,16 @@ class Add_To_Cart extends Widget_Base {
         echo '</div>';
     }
 
-    /** دکمه افزودن */
+    /** دکمه افزودن با لودر داخلی */
     private function render_button(array $settings, $product, bool $is_variable): void {
         $text = '' !== trim((string) $settings['button_text'])
             ? $settings['button_text']
             : $product->single_add_to_cart_text();
 
-        $this->add_render_attribute('btn', [
-            'class' => ['amfc-atc__btn'],
-            'type'  => $is_variable ? 'submit' : 'button',
-        ]);
-
         $icon  = $this->get_icon_html($settings);
         $start = 'start' === $settings['icon_position'];
 
-        echo '<button ' . $this->get_render_attribute_string('btn') . '>';
+        printf('<button type="%s" class="amfc-atc__btn">', $is_variable ? 'submit' : 'button');
         echo '<span class="amfc-atc__btn-in">';
         if ($start) {
             echo $icon; // phpcs:ignore
@@ -813,8 +812,8 @@ class Add_To_Cart extends Widget_Base {
         echo '</button>';
     }
 
-    /** کنترل «در سبد شما» (پیش‌فرض مخفی؛ JS نمایشش می‌دهد) */
-    private function render_incart_control(array $settings, $product): void {
+    /** کنترل «در سبد شما» — مخفی تا وقتی JS تأیید کند در سبد است */
+    private function render_incart_control(array $settings): void {
         ?>
         <div class="amfc-atc__incart" hidden>
             <div class="amfc-atc__incart-info">
@@ -841,7 +840,7 @@ class Add_To_Cart extends Widget_Base {
 
     /* ---------------- کمکی‌ها ---------------- */
 
-    /** HTML جعبه قیمت برای محصول ساده (واریانت را JS می‌سازد با همین کلاس‌ها) */
+    /** جعبه قیمت محصول ساده (نسخه واریانت را JS با همین کلاس‌ها می‌سازد) */
     private function price_box_html($product): string {
         $regular = (float) wc_get_price_to_display($product, ['price' => $product->get_regular_price()]);
         $active  = (float) wc_get_price_to_display($product);
@@ -849,8 +848,8 @@ class Add_To_Cart extends Widget_Base {
 
         $out = '<div class="amfc-atc__price-box" data-role="price">';
         if ($on_sale) {
-            $pct = (int) round(($regular - $active) / $regular * 100);
-            $out .= '<span class="amfc-atc__discount">' . $this->fa(number_format($pct)) . '<svg viewBox="0 0 24 24" width="0.9em" height="0.9em" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 15 15 9M9.5 9.5h.01M14.5 14.5h.01"/></svg></span>';
+            $pct  = (int) round(($regular - $active) / $regular * 100);
+            $out .= '<span class="amfc-atc__discount">' . $this->fa((string) $pct) . '<svg viewBox="0 0 24 24" width="0.9em" height="0.9em" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 15 15 9M9.5 9.5h.01M14.5 14.5h.01"/></svg></span>';
             $out .= '<del class="amfc-atc__regular">' . $this->fa(number_format($regular)) . '</del>';
         }
         $out .= '<span class="amfc-atc__final">' . $this->fa(number_format($active)) . '</span>';
@@ -886,8 +885,8 @@ class Add_To_Cart extends Widget_Base {
         return 0;
     }
 
-    private function fa($str): string {
-        return strtr((string) $str, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
+    private function fa(string $str): string {
+        return strtr($str, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
     }
 
     private function resolve_product(array $settings) {
@@ -908,6 +907,7 @@ class Add_To_Cart extends Widget_Base {
         return false;
     }
 
+    /** خواندن و پاک‌سازی امنیتی SVG برای درج inline */
     private function get_inline_svg(int $attachment_id): string {
         $path = get_attached_file($attachment_id);
         if (!$path || !file_exists($path)) {

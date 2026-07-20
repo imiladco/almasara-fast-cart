@@ -6,8 +6,15 @@
 	gap: 16px;
 }
 
+/*
+ * صفت hidden باید همیشه ببرد؛ بدون این قانون، هر عنصری که display از CSS
+ * نویسنده می‌گیرد (مثل flex) با hidden مخفی نمی‌شود.
+ */
+.amfc-atc [hidden] {
+	display: none !important;
+}
+
 .amfc-atc__variations,
-.amfc-atc__single_variation_wrap,
 .amfc-atc .single_variation_wrap {
 	display: flex;
 	flex-direction: column;
@@ -49,7 +56,7 @@
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
-	/* فلش سفارشی */
+	/* فلش سفارشی سمت مقابل متن (RTL) */
 	background-image: linear-gradient(45deg, transparent 50%, var(--amfc-arrow) 50%), linear-gradient(135deg, var(--amfc-arrow) 50%, transparent 50%);
 	background-position: calc(0% + 18px) center, calc(0% + 24px) center;
 	background-size: 6px 6px, 6px 6px;
@@ -58,7 +65,7 @@
 	text-align-last: center;
 }
 
-/* نمایش/مخفی reset را خودِ WooCommerce با visibility مدیریت می‌کند */
+/* نمایش/مخفی «حذف انتخاب» را خود WooCommerce با visibility مدیریت می‌کند */
 .amfc-atc__reset {
 	align-self: flex-start;
 	display: inline-flex;
@@ -73,7 +80,7 @@
 	text-decoration: none;
 }
 
-/* دکمه افزودن تا انتخاب کامل واریانت غیرفعال (کلاس WooCommerce) */
+/* دکمه افزودن تا انتخاب کامل واریانت غیرفعال (کلاس بومی WooCommerce) */
 .amfc-atc .woocommerce-variation-add-to-cart-disabled .amfc-atc__btn {
 	opacity: 0.45;
 	pointer-events: none;
@@ -135,7 +142,6 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: var(--amfc-atc-icongap, 8px);
 	padding: 16px 24px;
 	border: 1px solid transparent;
 	border-radius: 10px;
@@ -168,11 +174,6 @@
 	-webkit-mask: radial-gradient(closest-side, transparent 62%, #000 63%);
 	mask: radial-gradient(closest-side, transparent 62%, #000 63%);
 	animation: amfc-spin 0.7s linear infinite;
-}
-
-.amfc-atc__btn--error {
-	background-color: #e5484d !important;
-	border-color: #e5484d !important;
 }
 
 .amfc-atc__icon {
@@ -228,10 +229,9 @@
 
 /* ---------- حالت «در سبد شما» ---------- */
 
-.amfc-atc__incart { display: none; }
-
 .amfc-atc--incart .amfc-atc__addrow { display: none; }
-.amfc-atc--incart .amfc-atc__incart {
+
+.amfc-atc__incart {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -282,21 +282,20 @@
 }
 
 .amfc-atc__ctl--inc { color: #e6123d; }
-.amfc-atc__ctl-minus { color: #16265c; font-size: 24px; }
+.amfc-atc__ctl-minus { color: #16265c; }
 .amfc-atc__ctl-trash { color: #e6123d; display: none; }
 
-/* وقتی تعداد ۱ است، دکمه کاهش → آیکون حذف */
+/* تعداد ۱: دکمه کاهش → آیکون حذف */
 .amfc-atc__control.is-single .amfc-atc__ctl-minus { display: none; }
 .amfc-atc__control.is-single .amfc-atc__ctl-trash { display: inline-flex; }
 
-/* حالت حداکثر: دکمه + کم‌رنگ و غیرفعال */
+/* حداکثر: دکمه + کم‌رنگ و غیرقابل کلیک */
 .amfc-atc__control.is-max .amfc-atc__ctl--inc {
 	opacity: 0.35;
 	pointer-events: none;
 }
 
 .amfc-atc__ctl-num {
-	position: relative;
 	display: inline-flex;
 	flex-direction: column;
 	align-items: center;
@@ -319,8 +318,8 @@
 	line-height: 1;
 }
 
-/* لودر دایره‌ای هنگام تغییر تعداد: رنگ پررنگ از انتها حول ۳۶۰ درجه حذف می‌شود.
-   انیمیشن زاویه با @property نرم می‌شود؛ در مرورگرهای قدیمی چرخش ساده fallback است. */
+/* لودر دایره‌ای تغییر تعداد: رنگ پررنگ از انتها حول ۳۶۰ درجه تخلیه می‌شود.
+   زاویه با @property نرم انیمیت می‌شود؛ مرورگر قدیمی fallback چرخش دارد. */
 @property --amfc-ang {
 	syntax: '<angle>';
 	inherits: false;
