@@ -14,7 +14,7 @@ final class Plugin {
     public static function boot(): void {
         require_once AMFC_PATH . 'includes/class-session.php';
         require_once AMFC_PATH . 'includes/class-settings.php';
-        require_once AMFC_PATH . 'includes/class-rest.php';
+        require_once AMFC_PATH . 'includes/class-ajax.php';
         require_once AMFC_PATH . 'includes/class-assets.php';
         require_once AMFC_PATH . 'includes/class-elementor.php';
 
@@ -24,7 +24,7 @@ final class Plugin {
         });
 
         Settings::init();
-        Rest::init();
+        Ajax::init();
         Assets::init();
         Elementor_Integration::init();
     }

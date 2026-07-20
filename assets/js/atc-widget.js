@@ -1,7 +1,7 @@
 /**
  * ویجت افزودن به سبد — افزونه سبد سریع الماسارا
  *
- * - محصول ساده و متغیر (افزودن مستقیم واریانت از REST همین افزونه)
+ * - محصول ساده و متغیر (افزودن مستقیم واریانت از endpoint wc-ajax همین افزونه)
  * - جایگزینی خودکار دکمه با کنترل «در سبد شما» وقتی محصول/واریانت در سبد است
  * - لودر دایره‌ای (تخلیه ۳۶۰ درجه) هنگام تغییر تعداد، حالت «حداکثر»
  * - هماهنگی با هسته (fast-cart.js) از طریق رویدادهای almasara:*
@@ -37,13 +37,19 @@
 		}
 	}
 
+	// آدرس endpoint روی کانال بومی wc-ajax (سشن/لاگین مثل مرور عادی)
+	function endpointUrl(name) {
+		return (CFG.ajaxUrl || '/?wc-ajax=%%endpoint%%').replace('%%endpoint%%', name);
+	}
+
 	function loadItems(force) {
 		if (itemsPromise && !force) {
 			return itemsPromise;
 		}
-		itemsPromise = fetch(CFG.restBase + '/items', { credentials: 'same-origin' })
-			.then(function (r) { return r.ok ? r.json() : { items: [] }; })
-			.then(function (data) {
+		itemsPromise = fetch(endpointUrl('amfc_items'), { credentials: 'same-origin' })
+			.then(function (r) { return r.ok ? r.json() : null; })
+			.then(function (res) {
+				var data = res && res.success ? res.data : { items: [] };
 				itemsMap = {};
 				(data.items || []).forEach(function (it) {
 					itemsMap[mapKey(it.product_id, it.variation_id)] = {
@@ -57,14 +63,39 @@
 		return itemsPromise;
 	}
 
-	function api(path, body) {
-		return fetch(CFG.restBase + path, {
+	function api(name, body) {
+		var params = new URLSearchParams();
+		Object.keys(body || {}).forEach(function (k) {
+			if (k === 'variation') {
+				Object.keys(body.variation).forEach(function (vk) {
+					params.append('variation[' + vk + ']', body.variation[vk]);
+				});
+			} else {
+				params.append(k, body[k]);
+			}
+		});
+		return fetch(endpointUrl(name), {
 			method: 'POST',
 			credentials: 'same-origin',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(body || {})
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+			body: params.toString()
 		}).then(function (r) {
-			return r.json().then(function (d) { return { ok: r.ok, data: d }; });
+			return r.json().then(function (d) {
+				// قالب wp_send_json_success/error: {success, data}
+				return { ok: r.ok && d && d.success, data: (d && d.data) || {} };
+			});
+		});
+	}
+
+	/** اعمال fragmentهای HTML پوسته (مینی‌کارت هدر و ...) */
+	function applyFragments(fragments) {
+		if (!fragments) {
+			return;
+		}
+		Object.keys(fragments).forEach(function (selector) {
+			document.querySelectorAll(selector).forEach(function (el) {
+				el.outerHTML = fragments[selector];
+			});
 		});
 	}
 
@@ -155,13 +186,14 @@
 		}
 
 		buttonLoading(root, true);
-		api('/add', body).then(function (res) {
+		api('amfc_add', body).then(function (res) {
 			buttonLoading(root, false);
-			if (res.ok && res.data && res.data.success) {
+			if (res.ok) {
 				itemsMap[mapKey(pid, body.variation_id || 0)] = {
 					key: res.data.key, quantity: res.data.quantity, max: res.data.max
 				};
 				persistItems();
+				applyFragments(res.data.fragments);
 				emit('almasara:cart_count', { count: res.data.count });
 				emit('almasara:added_to_cart', {
 					productId: pid, variationId: body.variation_id || 0, quantity: body.quantity
@@ -186,11 +218,12 @@
 		}
 
 		controlLoading(root, true);
-		api('/update', { key: cartKey, quantity: newQty }).then(function (res) {
+		api('amfc_update', { key: cartKey, quantity: newQty }).then(function (res) {
 			controlLoading(root, false);
-			if (!res.ok || !res.data) {
+			if (!res.ok) {
 				return;
 			}
+			applyFragments(res.data.fragments);
 			var target = currentTarget(root);
 			if (res.data.removed) {
 				if (target) {

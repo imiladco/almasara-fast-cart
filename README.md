@@ -10,13 +10,14 @@
 almasara-fast-cart.php               ← بوت‌استرپ نازک (ثابت‌ها، HPOS، بوت)
 includes/
 ├── class-plugin.php                 ← هماهنگ‌کننده: لود و init ماژول‌ها
-├── class-session.php                ← سشن/سبد WC در بستر REST (کوکی مهمان + کوکی‌های سبد)
-├── class-rest.php                   ← endpointهای almasara-cart/v1 (summary, items, add, update)
+├── class-session.php                ← تثبیت سشن/کوکی‌های سبد بعد از هر تغییر
+├── class-ajax.php                   ← endpointهای wc-ajax (amfc_items, amfc_add, amfc_update)
 ├── class-settings.php               ← ووکامرس → «سبد سریع»
 ├── class-assets.php                 ← دارایی‌های فرانت + کانفیگ کلاینت
 ├── class-elementor.php              ← ثبت دسته/ویجت المنتور (فقط با المنتور فعال)
 └── widgets/class-add-to-cart.php    ← ویجت افزودن به سبد
 assets/
+├── js/cart-store.js                 ← AMFCStore: اسنپ‌شات سبد در IndexedDB (لوکال-اول)
 ├── js/fast-cart.js                  ← هسته: بج از کوکی، خوش‌بینانه، toast، چندتب، prerender
 ├── js/atc-widget.js                 ← ویجت: واریانت، حالت «در سبد»، لودر تعداد
 ├── css/fast-cart.css                ← toast + بج
@@ -37,19 +38,19 @@ assets/
 - **حالت «در سبد شما»**: وقتی محصول/واریانت در سبد است، دکمه جایش را به کنترل می‌دهد — عنوان + لینک سبد + باکس `[حذف/−] عدد [+]`. تعداد ۱ → آیکون حذف؛ هنگام تغییر → لودر دایره‌ای تخلیه‌شونده ۳۶۰ درجه؛ در سقف موجودی → دکمه + کم‌رنگ و متن «حداکثر».
 - استایل کامل همه اجزا در تب استایل المنتور.
 
-## REST (namespace: `almasara-cart/v1`)
+## Endpointها (کانال wc-ajax)
 
 | endpoint | متد | کار |
 |---|---|---|
-| `/summary` | GET | تعداد + جمع کل (بدون کش) |
-| `/items` | GET | اقلام سبد برای تشخیص «در سبد بودن» |
-| `/add` | POST | افزودن ساده/واریانت از `WC()->cart->add_to_cart` (همه هوک‌ها فایر) |
-| `/update` | POST | تغییر تعداد / حذف (`quantity <= 0`) |
+| `?wc-ajax=amfc_items` | GET | اقلام سبد برای تشخیص «در سبد بودن» (بدون کش) |
+| `?wc-ajax=amfc_add` | POST | افزودن ساده/واریانت از `WC()->cart->add_to_cart` (همه هوک‌ها فایر) |
+| `?wc-ajax=amfc_update` | POST | تغییر تعداد / حذف (`quantity <= 0`) |
 
 نکات معماری:
-- **بدون نانس** (مثل wc-ajax): نانسِ داخل صفحه کش‌شده بعد از انقضا 403 می‌دهد. هویت = کوکی سشن ووکامرس؛ نوشتن‌ها بررسی same-origin (Sec-Fetch-Site / Referer) دارند.
-- **سشن مهمان در REST**: بعد از هر mutation، کوکی سشن مهمان و کوکی‌های سبد صریحاً داخل callback ست می‌شوند (`class-session.php`) — در REST روی shutdown دیر است و سبد مهمان گم می‌شد.
-- namespace جدا از افزونه ویجت‌ها (`almasara/v1`) — صفر تداخل.
+- **چرا wc-ajax و نه REST**: درخواست REST بدون نانس «لاگین‌نشده» حساب می‌شود و ووکامرس کوکی سشنِ کاربر لاگین‌شده را نامعتبر می‌داند و نابودش می‌کند → سشن دوم مهمان و **دوپاره شدن سبد**. wc-ajax یک درخواست کامل فرانت است: کوکی لاگین عادی احراز می‌شود، سشن مثل مرور عادی لود می‌شود و کش صفحه هم مستثنی‌اش می‌کند.
+- **بدون نانس** (مثل wc-ajax خود ووکامرس): نانسِ داخل صفحه کش‌شده بعد از انقضا 403 می‌دهد. هویت = کوکی‌های عادی؛ نوشتن‌ها بررسی same-origin (Sec-Fetch-Site / Referer) دارند.
+- **تثبیت سشن مهمان**: بعد از هر mutation، کوکی سشن مهمان و کوکی‌های سبد صریحاً داخل callback ست می‌شوند (`class-session.php`).
+- **fragmentها**: پاسخ add/update شامل `fragments` (سلکتور → HTML) از فیلتر `amfc_fragments` است؛ کلاینت با outerHTML جایگزین می‌کند تا مینی‌کارت/هدر بلافاصله تازه شود.
 
 ## قرارداد پوسته
 
@@ -61,7 +62,16 @@ assets/
 
 بج شناور روی آیکون: کلاس `amfc-count amfc-badge` روی span داخل والد `position:relative`.
 
+**تازه‌سازی مینی‌کارت**: پوسته با فیلتر `amfc_fragments` جفت‌های سلکتور → HTML خودش را ثبت می‌کند (و همان تابع را روی `woocommerce_add_to_cart_fragments` هم بگذارد تا دکمه‌های بومی آرشیو هم پوشش داده شوند):
+
+```php
+add_filter( 'amfc_fragments', function ( $fragments ) {
+    $fragments['#sub-menu-fragment .cart-items'] = almasara_cart_fragment_items();
+    return $fragments;
+} );
+```
+
 ## نقشه راه
 
-- فاز ۲ (اختیاری): کش خلاصه localStorage برای مینی‌کارت آنی.
-- فاز ۳ (مشروط به شواهد): Service Worker + IndexedDB برای آفلاین/PWA.
+- ✅ اسنپ‌شات IndexedDB (`cart-store.js`): حالت «در سبد» آنی روی صفحات کش‌شده، stale-while-revalidate.
+- فاز بعد (مشروط به شواهد): Service Worker برای صف آفلاین/PWA.

@@ -29,7 +29,7 @@ final class Assets {
         wp_enqueue_script('amfc', AMFC_URL . 'assets/js/fast-cart.js', ['amfc-store'], AMFC_VERSION, true);
 
         wp_localize_script('amfc', 'AMFC', [
-            'restBase'      => esc_url_raw(rest_url('almasara-cart/v1')),
+            'ajaxUrl'       => \WC_AJAX::get_endpoint('%%endpoint%%'),
             'countSelector' => $settings['count_selector'],
             'cartUrl'       => esc_url(wc_get_cart_url()),
             'toast'         => [
