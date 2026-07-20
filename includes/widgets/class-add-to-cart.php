@@ -61,14 +61,18 @@ class Add_To_Cart extends Widget_Base {
 
     protected function register_controls(): void {
         $this->register_content_controls();
+        $this->register_price_content_controls();
         $this->register_quantity_content_controls();
         $this->register_incart_content_controls();
 
         $this->register_layout_style_controls();
         $this->register_button_style_controls();
+        $this->register_price_layout_style_controls();
+        $this->register_price_now_style_controls();
+        $this->register_price_old_style_controls();
+        $this->register_discount_style_controls();
         $this->register_quantity_style_controls();
         $this->register_variations_style_controls();
-        $this->register_price_style_controls();
         $this->register_incart_style_controls();
     }
 
@@ -117,16 +121,80 @@ class Add_To_Cart extends Widget_Base {
             'condition' => ['show_icon' => 'yes'],
         ]);
 
+        $this->add_control('reset_text', [
+            'label'   => __('متن «حذف انتخاب» (واریانت)', 'almasara-fast-cart'),
+            'type'    => Controls_Manager::TEXT,
+            'default' => __('حذف انتخاب', 'almasara-fast-cart'),
+        ]);
+
+        $this->end_controls_section();
+    }
+
+    /* ---------------- محتوا: قیمت ---------------- */
+
+    private function register_price_content_controls(): void {
+        $this->start_controls_section('section_price_content', [
+            'label' => __('قیمت', 'almasara-fast-cart'),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ]);
+
         $this->add_control('show_price', [
             'label'   => __('نمایش قیمت', 'almasara-fast-cart'),
             'type'    => Controls_Manager::SWITCHER,
             'default' => 'yes',
         ]);
 
-        $this->add_control('reset_text', [
-            'label'   => __('متن «حذف انتخاب» (واریانت)', 'almasara-fast-cart'),
-            'type'    => Controls_Manager::TEXT,
-            'default' => __('حذف انتخاب', 'almasara-fast-cart'),
+        $this->add_control('show_regular_price', [
+            'label'       => __('نمایش قیمت پیش از تخفیف', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::SWITCHER,
+            'default'     => 'yes',
+            'description' => __('قیمت قدیم فقط هنگامی نمایش داده می‌شود که محصول فروش ویژه داشته باشد.', 'almasara-fast-cart'),
+            'condition'   => ['show_price' => 'yes'],
+        ]);
+
+        $this->add_control('show_discount_badge', [
+            'label'     => __('بج درصد تخفیف', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::SWITCHER,
+            'default'   => 'yes',
+            'condition' => ['show_price' => 'yes'],
+        ]);
+
+        $this->add_control('heading_currency', [
+            'label'     => __('واحد پول', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+            'condition' => ['show_price' => 'yes'],
+        ]);
+
+        $this->add_control('currency_text', [
+            'label'       => __('متن واحد پول', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::TEXT,
+            'placeholder' => __('تومان', 'almasara-fast-cart'),
+            'description' => __('خالی = نماد پیش‌فرض ووکامرس.', 'almasara-fast-cart'),
+            'dynamic'     => ['active' => true],
+            'condition'   => ['show_price' => 'yes'],
+        ]);
+
+        $this->add_control('currency_on_now', [
+            'label'     => __('واحد پول برای قیمت فعلی', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::SWITCHER,
+            'default'   => 'yes',
+            'condition' => ['show_price' => 'yes'],
+        ]);
+
+        $this->add_control('currency_on_old', [
+            'label'     => __('واحد پول برای قیمت پیشین', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::SWITCHER,
+            'condition' => ['show_price' => 'yes', 'show_regular_price' => 'yes'],
+        ]);
+
+        $this->add_control('free_text', [
+            'label'       => __('متن «رایگان»', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::TEXT,
+            'default'     => __('رایگان', 'almasara-fast-cart'),
+            'description' => __('وقتی قیمت صفر باشد، این متن به‌جای عدد و واحد پول نمایش داده می‌شود. برای نمایش خودِ صفر، خالی بگذارید.', 'almasara-fast-cart'),
+            'separator'   => 'before',
+            'condition'   => ['show_price' => 'yes'],
         ]);
 
         $this->end_controls_section();
@@ -494,21 +562,15 @@ class Add_To_Cart extends Widget_Base {
 
     /* ---------------- استایل: قیمت ---------------- */
 
-    private function register_price_style_controls(): void {
+    private function register_price_layout_style_controls(): void {
         $this->start_controls_section('section_style_price', [
-            'label'     => __('قیمت', 'almasara-fast-cart'),
+            'label'     => __('قیمت — چیدمان', 'almasara-fast-cart'),
             'tab'       => Controls_Manager::TAB_STYLE,
             'condition' => ['show_price' => 'yes'],
         ]);
 
-        /* ---- چیدمان ردیف قیمت ---- */
-        $this->add_control('heading_price_layout', [
-            'label' => __('چیدمان', 'almasara-fast-cart'),
-            'type'  => Controls_Manager::HEADING,
-        ]);
-
         $this->add_responsive_control('price_direction', [
-            'label'                => __('جهت', 'almasara-fast-cart'),
+            'label'                => __('جهت چیدمان دو قیمت', 'almasara-fast-cart'),
             'type'                 => Controls_Manager::CHOOSE,
             'default'              => 'row',
             'options'              => [
@@ -524,8 +586,24 @@ class Add_To_Cart extends Widget_Base {
             'selectors'            => ['{{WRAPPER}} .amfc-atc__price-box' => '{{VALUE}}'],
         ]);
 
+        $this->add_control('old_position', [
+            'label'                => __('جای قیمت پیشین', 'almasara-fast-cart'),
+            'type'                 => Controls_Manager::CHOOSE,
+            'default'              => 'before',
+            'options'              => [
+                'before' => ['title' => __('پیش از قیمت فعلی', 'almasara-fast-cart'), 'icon' => 'eicon-order-start'],
+                'after'  => ['title' => __('پس از قیمت فعلی', 'almasara-fast-cart'), 'icon' => 'eicon-order-end'],
+            ],
+            'selectors_dictionary' => [
+                'before' => 'order: 0;',
+                'after'  => 'order: 4;',
+            ],
+            'selectors'            => ['{{WRAPPER}} .amfc-atc__price--old' => '{{VALUE}}'],
+            'condition'            => ['show_regular_price' => 'yes'],
+        ]);
+
         $this->add_responsive_control('price_justify', [
-            'label'       => __('توزیع افقی', 'almasara-fast-cart'),
+            'label'       => __('توزیع در راستای چیدمان', 'almasara-fast-cart'),
             'type'        => Controls_Manager::CHOOSE,
             'default'     => 'flex-start',
             'options'     => [
@@ -539,7 +617,7 @@ class Add_To_Cart extends Widget_Base {
         ]);
 
         $this->add_responsive_control('price_align_v', [
-            'label'     => __('تراز عمودی', 'almasara-fast-cart'),
+            'label'     => __('تراز عرضی', 'almasara-fast-cart'),
             'type'      => Controls_Manager::CHOOSE,
             'default'   => 'center',
             'options'   => [
@@ -552,7 +630,7 @@ class Add_To_Cart extends Widget_Base {
         ]);
 
         $this->add_responsive_control('price_gap', [
-            'label'      => __('فاصله بین اجزا', 'almasara-fast-cart'),
+            'label'      => __('فاصله بین دو قیمت', 'almasara-fast-cart'),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px', 'em'],
             'range'      => ['px' => ['min' => 0, 'max' => 40]],
@@ -560,65 +638,230 @@ class Add_To_Cart extends Widget_Base {
             'selectors'  => ['{{WRAPPER}} .amfc-atc__price-box' => 'gap: {{SIZE}}{{UNIT}};'],
         ]);
 
-        /* ---- قیمت نهایی ---- */
-        $this->add_control('heading_price_final', [
-            'label'     => __('قیمت نهایی', 'almasara-fast-cart'),
+        $this->end_controls_section();
+    }
+
+    /* ---------------- استایل: قیمت فعلی ---------------- */
+
+    private function register_price_now_style_controls(): void {
+        $this->start_controls_section('section_style_price_now', [
+            'label'     => __('قیمت فعلی', 'almasara-fast-cart'),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => ['show_price' => 'yes'],
+        ]);
+
+        $this->add_control('heading_now_layout', [
+            'label'     => __('چیدمان عدد و واحد پول', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'condition' => ['currency_on_now' => 'yes'],
+        ]);
+
+        $this->add_control('now_unit_position', [
+            'label'                => __('جایگاه واحد پول', 'almasara-fast-cart'),
+            'type'                 => Controls_Manager::CHOOSE,
+            'default'              => 'after',
+            'options'              => [
+                'after'  => ['title' => __('پس از عدد', 'almasara-fast-cart'), 'icon' => 'eicon-order-end'],
+                'before' => ['title' => __('پیش از عدد', 'almasara-fast-cart'), 'icon' => 'eicon-order-start'],
+            ],
+            'selectors_dictionary' => [
+                'after'  => 'flex-direction: row;',
+                'before' => 'flex-direction: row-reverse;',
+            ],
+            'selectors'            => ['{{WRAPPER}} .amfc-atc__price--now' => '{{VALUE}}'],
+            'condition'            => ['currency_on_now' => 'yes'],
+        ]);
+
+        $this->add_responsive_control('now_unit_align', [
+            'label'     => __('تراز عمودی عدد و واحد', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::CHOOSE,
+            'default'   => 'baseline',
+            'options'   => [
+                'flex-start' => ['title' => __('بالا', 'almasara-fast-cart'), 'icon' => 'eicon-v-align-top'],
+                'center'     => ['title' => __('وسط', 'almasara-fast-cart'), 'icon' => 'eicon-v-align-middle'],
+                'baseline'   => ['title' => __('خط کرسی', 'almasara-fast-cart'), 'icon' => 'eicon-align-stretch-v'],
+                'flex-end'   => ['title' => __('پایین', 'almasara-fast-cart'), 'icon' => 'eicon-v-align-bottom'],
+            ],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__price--now' => 'align-items: {{VALUE}};'],
+            'condition' => ['currency_on_now' => 'yes'],
+        ]);
+
+        $this->add_responsive_control('now_unit_gap', [
+            'label'      => __('فاصله عدد تا واحد پول', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px', 'em'],
+            'range'      => ['px' => ['min' => 0, 'max' => 30]],
+            'default'    => ['size' => 3, 'unit' => 'px'],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__price--now' => 'gap: {{SIZE}}{{UNIT}};'],
+            'condition'  => ['currency_on_now' => 'yes'],
+        ]);
+
+        $this->add_control('heading_now_box', [
+            'label'     => __('کادر قیمت', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
+        $this->add_responsive_control('now_padding', [
+            'label'      => __('پدینگ بلوک', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__price--now' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('now_radius', [
+            'label'      => __('گردی گوشه بلوک', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', '%'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__price--now' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_group_control(Group_Control_Background::get_type(), [
+            'name'     => 'now_bg',
+            'label'    => __('نوع پس‌زمینه', 'almasara-fast-cart'),
+            'types'    => ['classic', 'gradient'],
+            'selector' => '{{WRAPPER}} .amfc-atc__price--now',
+        ]);
+
+        $this->add_group_control(Group_Control_Border::get_type(), [
+            'name'     => 'now_border',
+            'label'    => __('نوع حاشیه', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__price--now',
+        ]);
+
+        $this->add_control('heading_now_style', [
+            'label'     => __('استایل کلی قیمت و واحد', 'almasara-fast-cart'),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
         ]);
 
         $this->add_group_control(Group_Control_Typography::get_type(), [
             'name'     => 'price_typo',
-            'selector' => '{{WRAPPER}} .amfc-atc__final',
+            'label'    => __('تایپوگرافی', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__price--now',
         ]);
 
         $this->add_control('price_color', [
             'label'     => __('رنگ', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'selectors' => ['{{WRAPPER}} .amfc-atc__final' => 'color: {{VALUE}};'],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__price--now' => 'color: {{VALUE}};'],
         ]);
 
-        /* ---- واحد پول ---- */
-        $this->add_control('heading_price_currency', [
-            'label'     => __('واحد پول', 'almasara-fast-cart'),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
+        $this->add_control('now_unit_custom', [
+            'label'       => __('استایل منحصربه‌فرد واحد پول', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::SWITCHER,
+            'description' => __('با فعال‌کردن، می‌توانید برای واحد پول این قیمت استایل جداگانه‌ای جدا از عدد تعیین کنید.', 'almasara-fast-cart'),
+            'separator'   => 'before',
+            'condition'   => ['currency_on_now' => 'yes'],
         ]);
 
         $this->add_group_control(Group_Control_Typography::get_type(), [
-            'name'     => 'currency_typo',
-            'selector' => '{{WRAPPER}} .amfc-atc__currency',
+            'name'      => 'currency_typo',
+            'label'     => __('تایپوگرافی واحد پول', 'almasara-fast-cart'),
+            'selector'  => '{{WRAPPER}} .amfc-atc__price--now .amfc-atc__unit',
+            'condition' => ['now_unit_custom' => 'yes'],
         ]);
 
         $this->add_control('currency_color', [
-            'label'     => __('رنگ', 'almasara-fast-cart'),
+            'label'     => __('رنگ واحد پول', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'selectors' => ['{{WRAPPER}} .amfc-atc__currency' => 'color: {{VALUE}};'],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__price--now .amfc-atc__unit' => 'color: {{VALUE}};'],
+            'condition' => ['now_unit_custom' => 'yes'],
         ]);
 
-        /* ---- قیمت خط‌خورده ---- */
-        $this->add_control('heading_price_regular', [
-            'label'     => __('قیمت خط‌خورده', 'almasara-fast-cart'),
+        $this->end_controls_section();
+    }
+
+    /* ---------------- استایل: قیمت پیش از تخفیف ---------------- */
+
+    private function register_price_old_style_controls(): void {
+        $this->start_controls_section('section_style_price_old', [
+            'label'     => __('قیمت پیش از تخفیف', 'almasara-fast-cart'),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => ['show_price' => 'yes', 'show_regular_price' => 'yes'],
+        ]);
+
+        $this->add_responsive_control('old_unit_gap', [
+            'label'      => __('فاصله عدد تا واحد پول', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px', 'em'],
+            'range'      => ['px' => ['min' => 0, 'max' => 30]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__price--old' => 'gap: {{SIZE}}{{UNIT}};'],
+            'condition'  => ['currency_on_old' => 'yes'],
+        ]);
+
+        $this->add_responsive_control('old_padding', [
+            'label'      => __('پدینگ بلوک', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__price--old' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('old_radius', [
+            'label'      => __('گردی گوشه بلوک', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', '%'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__price--old' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_group_control(Group_Control_Background::get_type(), [
+            'name'     => 'old_bg',
+            'label'    => __('نوع پس‌زمینه', 'almasara-fast-cart'),
+            'types'    => ['classic', 'gradient'],
+            'selector' => '{{WRAPPER}} .amfc-atc__price--old',
+        ]);
+
+        $this->add_group_control(Group_Control_Border::get_type(), [
+            'name'     => 'old_border',
+            'label'    => __('نوع حاشیه', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__price--old',
+        ]);
+
+        $this->add_control('old_strike', [
+            'label'       => __('خط‌خورده', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::SWITCHER,
+            'default'     => 'yes',
+            'description' => __('روی کل قیمت پیشین (عدد و واحد) خط کشیده می‌شود.', 'almasara-fast-cart'),
+            'separator'   => 'before',
+            'selectors'   => ['{{WRAPPER}} .amfc-atc__price--old' => 'text-decoration: line-through;'],
+        ]);
+
+        $this->add_control('heading_old_style', [
+            'label'     => __('استایل کلی قیمت و واحد', 'almasara-fast-cart'),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
         ]);
 
         $this->add_group_control(Group_Control_Typography::get_type(), [
             'name'     => 'regular_typo',
-            'selector' => '{{WRAPPER}} .amfc-atc__regular',
+            'label'    => __('تایپوگرافی', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__price--old',
         ]);
 
         $this->add_control('regular_color', [
             'label'     => __('رنگ', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
-            'selectors' => ['{{WRAPPER}} .amfc-atc__regular' => 'color: {{VALUE}};'],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__price--old' => 'color: {{VALUE}};'],
         ]);
 
-        /* ---- بج تخفیف ---- */
-        $this->add_control('heading_discount', [
+        $this->end_controls_section();
+    }
+
+    /* ---------------- استایل: بج تخفیف ---------------- */
+
+    private function register_discount_style_controls(): void {
+        $this->start_controls_section('section_style_discount', [
             'label'     => __('بج تخفیف', 'almasara-fast-cart'),
-            'type'      => Controls_Manager::HEADING,
-            'separator' => 'before',
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => ['show_price' => 'yes', 'show_discount_badge' => 'yes'],
         ]);
 
         $this->add_control('discount_position', [
@@ -801,11 +1044,22 @@ class Add_To_Cart extends Widget_Base {
 
         $type = $product->get_type();
 
+        // کانفیگ قیمت برای JS: قیمت واریانت سمت کلاینت با همین تنظیمات ساخته می‌شود
+        $price_cfg = [
+            'unit'    => $this->currency_text($settings),
+            'unitNow' => 'yes' === ($settings['currency_on_now'] ?? 'yes'),
+            'unitOld' => 'yes' === ($settings['currency_on_old'] ?? ''),
+            'old'     => 'yes' === ($settings['show_regular_price'] ?? 'yes'),
+            'badge'   => 'yes' === ($settings['show_discount_badge'] ?? 'yes'),
+            'free'    => trim((string) ($settings['free_text'] ?? '')),
+        ];
+
         printf(
-            '<div class="amfc-atc amfc-atc--%1$s" data-product="%2$d" data-type="%1$s" data-max-text="%3$s">',
+            '<div class="amfc-atc amfc-atc--%1$s" data-product="%2$d" data-type="%1$s" data-max-text="%3$s" data-price-cfg="%4$s">',
             esc_attr($type),
             (int) $product->get_id(),
-            esc_attr($settings['max_text'])
+            esc_attr($settings['max_text']),
+            esc_attr(wp_json_encode($price_cfg))
         );
 
         if ($product->is_type('variable')) {
@@ -822,7 +1076,7 @@ class Add_To_Cart extends Widget_Base {
     /** محصول ساده: قیمت + ردیف افزودن */
     private function render_simple(array $settings, $product): void {
         if ('yes' === $settings['show_price']) {
-            echo $this->price_box_html($product); // phpcs:ignore
+            echo $this->price_box_html($product, $settings); // phpcs:ignore
         }
         echo '<div class="amfc-atc__addrow">';
         $this->render_quantity($settings, $product);
@@ -959,22 +1213,51 @@ class Add_To_Cart extends Widget_Base {
 
     /* ---------------- کمکی‌ها ---------------- */
 
-    /** جعبه قیمت محصول ساده (نسخه واریانت را JS با همین کلاس‌ها می‌سازد) */
-    private function price_box_html($product): string {
-        $regular = (float) wc_get_price_to_display($product, ['price' => $product->get_regular_price()]);
-        $active  = (float) wc_get_price_to_display($product);
-        $on_sale = $product->is_on_sale() && $regular > $active && $regular > 0;
+    /** جعبه قیمت محصول ساده (نسخه واریانت را JS با همین کلاس‌ها و همین تنظیمات می‌سازد) */
+    private function price_box_html($product, array $settings): string {
+        $regular  = (float) wc_get_price_to_display($product, ['price' => $product->get_regular_price()]);
+        $active   = (float) wc_get_price_to_display($product);
+        $on_sale  = $product->is_on_sale() && $regular > $active && $regular > 0;
+        $unit     = '<span class="amfc-atc__unit">' . esc_html($this->currency_text($settings)) . '</span>';
+        $free     = trim((string) ($settings['free_text'] ?? ''));
 
         $out = '<div class="amfc-atc__price-box" data-role="price">';
-        if ($on_sale) {
+
+        if ($on_sale && 'yes' === ($settings['show_discount_badge'] ?? 'yes')) {
             $pct  = (int) round(($regular - $active) / $regular * 100);
             $out .= '<span class="amfc-atc__discount">' . $this->fa((string) $pct) . '<svg viewBox="0 0 24 24" width="0.9em" height="0.9em" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 15 15 9M9.5 9.5h.01M14.5 14.5h.01"/></svg></span>';
-            $out .= '<del class="amfc-atc__regular">' . $this->fa(number_format($regular)) . '</del>';
         }
-        $out .= '<span class="amfc-atc__final">' . $this->fa(number_format($active)) . '</span>';
-        $out .= '<span class="amfc-atc__currency">' . esc_html__('تومان', 'almasara-fast-cart') . '</span>';
-        $out .= '</div>';
+
+        if ($on_sale && 'yes' === ($settings['show_regular_price'] ?? 'yes')) {
+            $out .= '<del class="amfc-atc__price amfc-atc__price--old"><span class="amfc-atc__num">' . $this->fa(number_format($regular)) . '</span>';
+            if ('yes' === ($settings['currency_on_old'] ?? '')) {
+                $out .= $unit;
+            }
+            $out .= '</del>';
+        }
+
+        $out .= '<span class="amfc-atc__price amfc-atc__price--now">';
+        if ($active <= 0 && '' !== $free) {
+            $out .= '<span class="amfc-atc__num amfc-atc__num--free">' . esc_html($free) . '</span>';
+        } else {
+            $out .= '<span class="amfc-atc__num">' . $this->fa(number_format($active)) . '</span>';
+            if ('yes' === ($settings['currency_on_now'] ?? 'yes')) {
+                $out .= $unit;
+            }
+        }
+        $out .= '</span></div>';
+
         return $out;
+    }
+
+    /** متن واحد پول: تنظیم ویجت یا نماد پیش‌فرض ووکامرس */
+    private function currency_text(array $settings): string {
+        $text = trim((string) ($settings['currency_text'] ?? ''));
+        if ('' !== $text) {
+            return $text;
+        }
+        $symbol = function_exists('get_woocommerce_currency_symbol') ? get_woocommerce_currency_symbol() : '';
+        return html_entity_decode((string) $symbol, ENT_QUOTES, 'UTF-8');
     }
 
     private function get_icon_html(array $settings): string {

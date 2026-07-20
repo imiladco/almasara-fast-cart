@@ -111,22 +111,32 @@
 	font-weight: 800;
 }
 
-.amfc-atc__regular {
-	color: #9aa3b2;
-	font-size: 15px;
-	text-decoration: line-through;
+/* هر قیمت یک بلوک مستقل عدد+واحد است؛ استایل کادر (پدینگ/پس‌زمینه/حاشیه) از پنل می‌آید */
+.amfc-atc__price {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 3px;
 }
 
-.amfc-atc__final {
+.amfc-atc__price--old {
+	color: #9aa3b2;
+	font-size: 15px;
+	text-decoration: none; /* خط‌خوردگی با کنترل «خط‌خورده» پنل اعمال می‌شود */
+}
+
+.amfc-atc__price--now {
 	color: #16265c;
 	font-size: 28px;
 	font-weight: 800;
 }
 
-.amfc-atc__currency {
-	color: #16265c;
+.amfc-atc__price--now .amfc-atc__unit {
 	font-size: 14px;
 	font-weight: 600;
+}
+
+.amfc-atc__price--old .amfc-atc__unit {
+	font-size: 12px;
 }
 
 /* ---------- ردیف افزودن ---------- */

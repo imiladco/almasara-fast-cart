@@ -249,6 +249,22 @@
 
 	/* ---------------- ساخت جعبه قیمت واریانت ---------------- */
 
+	function escText(s) {
+		return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
+	// تنظیمات قیمت که PHP روی ریشه ویجت گذاشته (واحد پول، نمایش قیمت پیشین و ...)
+	function priceCfg(root) {
+		if (!root.__amfcPriceCfg) {
+			try {
+				root.__amfcPriceCfg = JSON.parse(root.dataset.priceCfg || '{}');
+			} catch (e) {
+				root.__amfcPriceCfg = {};
+			}
+		}
+		return root.__amfcPriceCfg;
+	}
+
 	function fillVariablePrice(root, variation) {
 		var box = root.querySelector('[data-role="price"]');
 		if (!box) {
@@ -258,17 +274,29 @@
 			box.innerHTML = '';
 			return;
 		}
+		var cfg = priceCfg(root);
 		var active = parseFloat(variation.display_price);
 		var regular = parseFloat(variation.display_regular_price);
+		var onSale = regular > active && regular > 0;
+		var unit = cfg.unit ? '<span class="amfc-atc__unit">' + escText(cfg.unit) + '</span>' : '';
 		var html = '';
-		if (regular > active && regular > 0) {
+
+		if (onSale && cfg.badge !== false) {
 			var pct = Math.round((regular - active) / regular * 100);
 			html += '<span class="amfc-atc__discount">' + fa(pct) +
 				'<svg viewBox="0 0 24 24" width="0.9em" height="0.9em" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 15 15 9M9.5 9.5h.01M14.5 14.5h.01"/></svg></span>';
-			html += '<del class="amfc-atc__regular">' + fa(regular.toLocaleString('en-US')) + '</del>';
 		}
-		html += '<span class="amfc-atc__final">' + fa(active.toLocaleString('en-US')) + '</span>';
-		html += '<span class="amfc-atc__currency">تومان</span>';
+		if (onSale && cfg.old !== false) {
+			html += '<del class="amfc-atc__price amfc-atc__price--old"><span class="amfc-atc__num">' + fa(regular.toLocaleString('en-US')) + '</span>' +
+				(cfg.unitOld ? unit : '') + '</del>';
+		}
+		html += '<span class="amfc-atc__price amfc-atc__price--now">';
+		if (!(active > 0) && cfg.free) {
+			html += '<span class="amfc-atc__num amfc-atc__num--free">' + escText(cfg.free) + '</span>';
+		} else {
+			html += '<span class="amfc-atc__num">' + fa(active.toLocaleString('en-US')) + '</span>' + (cfg.unitNow !== false ? unit : '');
+		}
+		html += '</span>';
 		box.innerHTML = html;
 	}
 
