@@ -50,7 +50,13 @@ final class Ajax {
      * پوسته با فیلتر amfc_fragments سلکتور→HTML خودش را ثبت می‌کند.
      */
     private static function fragments(): array {
-        return (array) apply_filters('amfc_fragments', []);
+        try {
+            return (array) apply_filters('amfc_fragments', []);
+        } catch (\Throwable $e) {
+            // fragment نمایشی است — خطایش نباید عملیات سبد را ۵۰۰ کند
+            error_log(sprintf('[amfc] fragments filter failed: %s @ %s:%d', $e->getMessage(), $e->getFile(), $e->getLine()));
+            return [];
+        }
     }
 
     /* ------------------------------------------------------------------ */
