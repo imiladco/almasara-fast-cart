@@ -83,6 +83,12 @@
 			return r.json().then(function (d) {
 				// قالب wp_send_json_success/error: {success, data}
 				return { ok: r.ok && d && d.success, data: (d && d.data) || {} };
+			}).catch(function () {
+				// پاسخ JSON نبود (کش/افزونه امنیتی/خطای PHP) — وضعیت را نشان بده
+				return {
+					ok: false,
+					data: { message: ((CFG.i18n && CFG.i18n.netError) || 'خطا') + ' (HTTP ' + r.status + ')' }
+				};
 			});
 		});
 	}
