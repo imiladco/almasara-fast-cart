@@ -319,6 +319,11 @@
 		return root.__amfcPriceCfg;
 	}
 
+	/**
+	 * ساختار خروجی مطابق price_box_html سمت PHP: price-stack (دیواید ۱) در
+	 * برگیرنده price-old-group اختیاری (دیواید ۲: بج + قیمت پیشین) و
+	 * قیمت فعلی. دیواید ۲ فقط وقتی بج یا قیمت پیشین فعال باشد رندر می‌شود.
+	 */
 	function fillVariablePrice(root, variation) {
 		var box = root.querySelector('[data-role="price"]');
 		if (!box) {
@@ -333,24 +338,31 @@
 		var regular = parseFloat(variation.display_regular_price);
 		var onSale = regular > active && regular > 0;
 		var unit = cfg.unit ? '<span class="amfc-atc__unit">' + escText(cfg.unit) + '</span>' : '';
-		var html = '';
+		var badgeOn = onSale && cfg.badge !== false;
+		var oldOn = onSale && cfg.old !== false;
+		var html = '<div class="amfc-atc__price-stack">';
 
-		if (onSale && cfg.badge !== false) {
-			var pct = Math.round((regular - active) / regular * 100);
-			html += '<span class="amfc-atc__discount">' + fa(pct) +
-				'<svg viewBox="0 0 24 24" width="0.9em" height="0.9em" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 15 15 9M9.5 9.5h.01M14.5 14.5h.01"/></svg></span>';
+		if (badgeOn || oldOn) {
+			html += '<div class="amfc-atc__price-old-group">';
+			if (badgeOn) {
+				var pct = Math.round((regular - active) / regular * 100);
+				html += '<span class="amfc-atc__discount"><span class="amfc-atc__discount-num">' + fa(pct) + '</span>' +
+					'<span class="amfc-atc__discount-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 15 15 9M9.5 9.5h.01M14.5 14.5h.01"/></svg></span></span>';
+			}
+			if (oldOn) {
+				html += '<del class="amfc-atc__price amfc-atc__price--old"><span class="amfc-atc__num">' + fa(regular.toLocaleString('en-US')) + '</span>' +
+					(cfg.unitOld ? unit : '') + '</del>';
+			}
+			html += '</div>';
 		}
-		if (onSale && cfg.old !== false) {
-			html += '<del class="amfc-atc__price amfc-atc__price--old"><span class="amfc-atc__num">' + fa(regular.toLocaleString('en-US')) + '</span>' +
-				(cfg.unitOld ? unit : '') + '</del>';
-		}
+
 		html += '<span class="amfc-atc__price amfc-atc__price--now">';
 		if (!(active > 0) && cfg.free) {
 			html += '<span class="amfc-atc__num amfc-atc__num--free">' + escText(cfg.free) + '</span>';
 		} else {
 			html += '<span class="amfc-atc__num">' + fa(active.toLocaleString('en-US')) + '</span>' + (cfg.unitNow !== false ? unit : '');
 		}
-		html += '</span>';
+		html += '</span></div>';
 		box.innerHTML = html;
 	}
 

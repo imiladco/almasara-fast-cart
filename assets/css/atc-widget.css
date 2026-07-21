@@ -102,17 +102,30 @@
 	pointer-events: none;
 }
 
-/* ---------- جعبه قیمت ---------- */
-
-.amfc-atc__price-box {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 10px;
-}
+/* ----------------------------------------------------------------------
+ * جعبه قیمت — ساختار دیوایدی:
+ *   price-box (اصلی) › price-stack (۱، پیش‌فرض ستونی: قیمت پیشین روی فعلی)
+ *     › price-old-group (۲: بج تخفیف + قیمت خط‌خورده، پیش‌فرض کنار هم)
+ *     › price--now (قیمت فعلی)
+ * جهت/توزیع/تراز/شکاف/wrap هرکدام از تب استایل → «چیدمان» می‌آید؛ مقادیر
+ * زیر فقط fallback پیش از رندر کنترل‌های المنتور است.
+ * ---------------------------------------------------------------------- */
 
 .amfc-atc__price-box:empty {
 	display: none;
+}
+
+.amfc-atc__price-stack {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.amfc-atc__price-old-group {
+	display: flex;
+	align-items: center;
+	gap: 6px;
 }
 
 .amfc-atc__discount {
@@ -125,6 +138,17 @@
 	color: #fff;
 	font-size: 13px;
 	font-weight: 800;
+}
+
+.amfc-atc__discount-icon {
+	display: inline-flex;
+	color: inherit;
+}
+
+.amfc-atc__discount-icon svg {
+	width: var(--amfc-disc-icon, 0.9em);
+	height: var(--amfc-disc-icon, 0.9em);
+	display: block;
 }
 
 /* هر قیمت یک بلوک مستقل عدد+واحد است؛ استایل کادر (پدینگ/پس‌زمینه/حاشیه) از پنل می‌آید */
@@ -193,8 +217,8 @@
 }
 
 .amfc-atc__btn-loader {
-	width: 1.3em;
-	height: 1.3em;
+	width: var(--amfc-btn-loader-size, 1.3em);
+	height: var(--amfc-btn-loader-size, 1.3em);
 	border-radius: 50%;
 	background: conic-gradient(currentColor 0deg, transparent 300deg);
 	-webkit-mask: radial-gradient(closest-side, transparent 62%, #000 63%);
@@ -423,18 +447,10 @@
 		display: none;
 	}
 
-	/* قیمت دوطبقه فشرده مثل دیزاین: بج + قیمت قدیم بالا، قیمت نهایی پایین */
+	/* دو طبقه فشرده مثل دیزاین (بج+قیمت قدیم بالا، قیمت نهایی پایین) به‌صورت
+	   پیش‌فرض از چیدمان ستونیِ price-stack می‌آید؛ اینجا فقط جمع‌نشدنش را تضمین می‌کنیم */
 	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__price-box {
-		display: grid;
-		grid-template-columns: repeat(2, auto);
-		justify-content: start;
-		align-items: center;
-		gap: 2px 8px;
 		flex-shrink: 0;
-	}
-
-	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__price--now {
-		grid-column: 1 / -1;
 	}
 
 	/* اطلاعیه «کالا اضافه شده»: ورود از پایین به بالا، خروج برعکس */
