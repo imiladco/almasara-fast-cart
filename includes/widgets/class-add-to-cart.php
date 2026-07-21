@@ -409,8 +409,8 @@ class Add_To_Cart extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}} .amfc-atc'             => 'gap: {{SIZE}}{{UNIT}};',
                 '{{WRAPPER}} .amfc-atc__variations' => 'gap: {{SIZE}}{{UNIT}};',
-                '{{WRAPPER}} .amfc-atc__bar-main'   => 'gap: {{SIZE}}{{UNIT}};',
             ],
+            'description' => __('فاصله داخل ردیف نوار (قیمت + اکشن) از تب استایل → «چیدمان» → تب «ردیف نوار» است.', 'almasara-fast-cart'),
         ]);
 
         $this->add_responsive_control('root_align', [
@@ -423,8 +423,7 @@ class Add_To_Cart extends Widget_Base {
                 'stretch'    => ['title' => __('کشیده', 'almasara-fast-cart'), 'icon' => 'eicon-flex eicon-align-stretch-v'],
             ],
             'selectors' => [
-                '{{WRAPPER}} .amfc-atc'           => 'align-items: {{VALUE}};',
-                '{{WRAPPER}} .amfc-atc__bar-main' => 'align-items: {{VALUE}};',
+                '{{WRAPPER}} .amfc-atc' => 'align-items: {{VALUE}};',
             ],
         ]);
 
@@ -1357,10 +1356,11 @@ class Add_To_Cart extends Widget_Base {
     /* ---------------- استایل: چیدمان قیمت (فلکس چهار بخش) ---------------- */
 
     /**
-     * سکشن «چیدمان» با چهار تب هم‌ساختار — هرکدام فلکس‌باکس کامل روی یک
-     * دیواید مشخص از ساختار قیمت (یا اطلاعیه):
+     * سکشن «چیدمان» با پنج تب هم‌ساختار — هرکدام فلکس‌باکس کامل روی یک
+     * دیواید مشخص از ساختار قیمت (یا اطلاعیه) یا خودِ نوار:
      * باکس قیمت (دیواید ۱: قیمت پیشین+تخفیف روی قیمت فعلی) / قیمت فعلی
-     * (عدد+واحد) / قیمت پیشین (دیواید ۲: بج تخفیف+قیمت خط‌خورده) / اطلاعیه.
+     * (عدد+واحد) / قیمت پیشین (دیواید ۲: بج تخفیف+قیمت خط‌خورده) / اطلاعیه /
+     * ردیف نوار (قیمت + ردیف افزودن/کنترل «در سبد» کنار هم).
      */
     private function register_price_flex_style_controls(): void {
         $this->start_controls_section('section_price_flex', [
@@ -1395,6 +1395,26 @@ class Add_To_Cart extends Widget_Base {
         $this->add_flex_controls('notice', '{{WRAPPER}} .amfc-atc__notice-in', [
             'condition' => ['sticky_mobile' => 'yes', 'sticky_notice' => 'yes'],
             'defaults'  => ['direction' => 'row', 'align' => 'center', 'justify' => 'space-between'],
+        ]);
+        $this->end_controls_tab();
+
+        $this->start_controls_tab('flex_tab_bar', ['label' => __('ردیف نوار', 'almasara-fast-cart')]);
+        $this->add_control('bar_flex_note', [
+            'type'            => Controls_Manager::RAW_HTML,
+            'raw'             => __('این کنترل‌ها فقط پیش‌فرض دسکتاپ/تبلت را ست می‌کنند (ستونی: قیمت روی ردیف افزودن). چیدمان موبایلِ نوار چسبان (قیمت کنار اکشن) از تب «نوار چسبان» می‌آید و دست‌نخورده می‌ماند — مگر این‌که خودتان اینجا صریحاً برای برک‌پوینت موبایل هم مقدار بدهید.', 'almasara-fast-cart'),
+            'content_classes' => 'elementor-descriptor',
+        ]);
+        $this->add_flex_controls('bar', '{{WRAPPER}} .amfc-atc__bar-main', [
+            'defaults' => ['direction' => 'column', 'align' => 'stretch'],
+        ]);
+        $this->add_responsive_control('bar_gap', [
+            'label'      => __('فاصله عمودی داخل نوار', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 60]],
+            'default'    => ['size' => 16, 'unit' => 'px'],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__bar-main' => 'gap: {{SIZE}}{{UNIT}};'],
+            'separator'  => 'before',
         ]);
         $this->end_controls_tab();
 
