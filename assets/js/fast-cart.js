@@ -135,7 +135,11 @@
 	/* ---------------- رویدادهای هماهنگی ---------------- */
 
 	// toast متمرکز + آنالیتیکس‌پسند: هر افزودنی این رویداد را می‌فرستد
-	document.addEventListener('almasara:added_to_cart', function () {
+	document.addEventListener('almasara:added_to_cart', function (e) {
+		// اگر ویجت خودش feedback داده (اطلاعیه نوار چسبان)، toast تکراری نده
+		if (e.detail && e.detail.handled) {
+			return;
+		}
 		toast((CFG.toast && CFG.toast.text) || (CFG.i18n && CFG.i18n.added) || '');
 	});
 

@@ -154,9 +154,7 @@
 				if (!root.classList.contains('amfc-atc--stickym')) {
 					return;
 				}
-				var el = root.classList.contains('amfc-atc--incart')
-					? root.querySelector('.amfc-atc__incart')
-					: root.querySelector('.amfc-atc__addrow');
+				var el = root.querySelector('.amfc-atc__bar');
 				if (el && el.offsetHeight) {
 					var rect = el.getBoundingClientRect();
 					var bottom = parseFloat(getComputedStyle(el).bottom) || 0;
@@ -171,6 +169,27 @@
 	window.addEventListener('resize', updateStickyPad);
 	if (stickyMq.addEventListener) {
 		stickyMq.addEventListener('change', updateStickyPad);
+	}
+
+	/**
+	 * اطلاعیه «کالا اضافه شده» بالای نوار چسبان: ورود از پایین به بالا،
+	 * بعد از مدت تنظیم‌شده خروج برعکس. true یعنی feedback همین‌جا داده شد
+	 * (toast سراسری نباید تکرارش کند).
+	 */
+	function showNotice(root) {
+		var notice = root.querySelector('.amfc-atc__notice');
+		if (!notice || !stickyMq.matches || !root.classList.contains('amfc-atc--stickym')) {
+			return false;
+		}
+		notice.classList.add('is-open');
+		updateStickyPad();
+		setTimeout(updateStickyPad, 400); // بعد از پایان انیمیشن ارتفاع واقعی
+		clearTimeout(notice.__amfcTimer);
+		notice.__amfcTimer = setTimeout(function () {
+			notice.classList.remove('is-open');
+			setTimeout(updateStickyPad, 400);
+		}, parseInt(root.dataset.noticeMs, 10) || 4000);
+		return true;
 	}
 
 	function paintControl(root, qty, max) {
@@ -233,9 +252,11 @@
 				};
 				persistItems();
 				applyFragments(res.data.fragments);
+				var noticeShown = showNotice(root);
 				emit('almasara:cart_count', { count: res.data.count });
 				emit('almasara:added_to_cart', {
-					productId: pid, variationId: body.variation_id || 0, quantity: body.quantity
+					productId: pid, variationId: body.variation_id || 0, quantity: body.quantity,
+					handled: noticeShown
 				});
 				refreshAll();
 			} else {

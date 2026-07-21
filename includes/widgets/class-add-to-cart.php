@@ -265,7 +265,38 @@ class Add_To_Cart extends Widget_Base {
         $this->add_control('sticky_mobile', [
             'label'       => __('چسبیدن به پایین نمایشگر', 'almasara-fast-cart'),
             'type'        => Controls_Manager::SWITCHER,
-            'description' => __('در موبایل، ردیف افزودن (تعداد + دکمه) و کنترل «در سبد شما» به پایین نمایشگر می‌چسبند؛ انتخابگرهای محصول متغیر سر جای خود در صفحه می‌مانند. استایل نوار در تب استایل → «نوار چسبان» است.', 'almasara-fast-cart'),
+            'description' => __('در موبایل، نوار (قیمت + دکمه/کنترل «در سبد») به پایین نمایشگر می‌چسبد؛ انتخابگرهای محصول متغیر سر جای خود در صفحه می‌مانند. استایل نوار در تب استایل → «نوار چسبان» است.', 'almasara-fast-cart'),
+        ]);
+
+        $this->add_control('sticky_notice', [
+            'label'       => __('اطلاعیه «کالا اضافه شده»', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::SWITCHER,
+            'default'     => 'yes',
+            'description' => __('بعد از افزودن، نوار سبز تأیید با انیمیشن از پایین بالای نوار ظاهر و بعد از چند ثانیه به پایین محو می‌شود.', 'almasara-fast-cart'),
+            'condition'   => ['sticky_mobile' => 'yes'],
+        ]);
+
+        $this->add_control('notice_text', [
+            'label'     => __('متن اطلاعیه', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::TEXT,
+            'default'   => __('کالا اضافه شده', 'almasara-fast-cart'),
+            'condition' => ['sticky_mobile' => 'yes', 'sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_link_text', [
+            'label'     => __('متن دکمه سبد', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::TEXT,
+            'default'   => __('برو به سبد خرید', 'almasara-fast-cart'),
+            'condition' => ['sticky_mobile' => 'yes', 'sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_duration', [
+            'label'     => __('مدت نمایش (ثانیه)', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::NUMBER,
+            'default'   => 4,
+            'min'       => 1,
+            'max'       => 15,
+            'condition' => ['sticky_mobile' => 'yes', 'sticky_notice' => 'yes'],
         ]);
 
         $this->end_controls_section();
@@ -286,9 +317,9 @@ class Add_To_Cart extends Widget_Base {
             'range'      => ['px' => ['min' => 0, 'max' => 60]],
             'default'    => ['size' => 16, 'unit' => 'px'],
             'selectors'  => [
-                '{{WRAPPER}} .amfc-atc'                     => 'gap: {{SIZE}}{{UNIT}};',
-                '{{WRAPPER}} .amfc-atc__variations'         => 'gap: {{SIZE}}{{UNIT}};',
-                '{{WRAPPER}} .amfc-atc .single_variation_wrap' => 'gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .amfc-atc'             => 'gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .amfc-atc__variations' => 'gap: {{SIZE}}{{UNIT}};',
+                '{{WRAPPER}} .amfc-atc__bar-main'   => 'gap: {{SIZE}}{{UNIT}};',
             ],
         ]);
 
@@ -384,6 +415,50 @@ class Add_To_Cart extends Widget_Base {
             'type'        => Controls_Manager::NUMBER,
             'description' => __('اگر منوی پایین پوسته روی نوار می‌افتد، این عدد را بزرگ‌تر کنید.', 'almasara-fast-cart'),
             'selectors'   => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-z: {{VALUE}};'],
+        ]);
+
+        $this->add_control('heading_notice_style', [
+            'label'     => __('اطلاعیه «کالا اضافه شده»', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+            'condition' => ['sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_bg', [
+            'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-ntc-bg: {{VALUE}};'],
+            'condition' => ['sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_color', [
+            'label'     => __('رنگ متن و آیکون', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-ntc-color: {{VALUE}};'],
+            'condition' => ['sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_link_color', [
+            'label'     => __('رنگ متن دکمه سبد', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-ntc-link: {{VALUE}};'],
+            'condition' => ['sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_link_bg', [
+            'label'     => __('پس‌زمینه دکمه سبد', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-ntc-link-bg: {{VALUE}};'],
+            'condition' => ['sticky_notice' => 'yes'],
+        ]);
+
+        $this->add_control('notice_radius', [
+            'label'      => __('گردی گوشه اطلاعیه', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 40]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc' => '--amfc-ntc-radius: {{SIZE}}{{UNIT}};'],
+            'condition'  => ['sticky_notice' => 'yes'],
         ]);
 
         $this->end_controls_section();
@@ -1383,12 +1458,13 @@ class Add_To_Cart extends Widget_Base {
         }
 
         printf(
-            '<div class="%1$s" data-product="%2$d" data-type="%3$s" data-max-text="%4$s" data-price-cfg="%5$s">',
+            '<div class="%1$s" data-product="%2$d" data-type="%3$s" data-max-text="%4$s" data-price-cfg="%5$s" data-notice-ms="%6$d">',
             esc_attr($classes),
             (int) $product->get_id(),
             esc_attr($type),
             esc_attr($settings['max_text']),
-            esc_attr(wp_json_encode($price_cfg))
+            esc_attr(wp_json_encode($price_cfg)),
+            max(1, (int) ($settings['notice_duration'] ?? 4)) * 1000
         );
 
         if ($product->is_type('variable')) {
@@ -1397,13 +1473,14 @@ class Add_To_Cart extends Widget_Base {
             $this->render_simple($settings, $product);
         }
 
-        $this->render_incart_control($settings);
-
         echo '</div>';
     }
 
-    /** محصول ساده: قیمت + ردیف افزودن */
+    /** محصول ساده: نوار = قیمت + ردیف افزودن + کنترل «در سبد» + اطلاعیه */
     private function render_simple(array $settings, $product): void {
+        echo '<div class="amfc-atc__bar">';
+        $this->render_notice($settings);
+        echo '<div class="amfc-atc__bar-main">';
         if ('yes' === $settings['show_price']) {
             echo $this->price_box_html($product, $settings); // phpcs:ignore
         }
@@ -1411,6 +1488,8 @@ class Add_To_Cart extends Widget_Base {
         $this->render_quantity($settings, $product);
         $this->render_button($settings, $product, false);
         echo '</div>';
+        $this->render_incart_control($settings);
+        echo '</div></div>';
     }
 
     /** محصول متغیر: فرم واریانت (سازگار با اسکریپت بومی WC) + قیمت داینامیک */
@@ -1454,7 +1533,10 @@ class Add_To_Cart extends Widget_Base {
             esc_html($settings['reset_text'])
         );
 
-        echo '<div class="single_variation_wrap">';
+        // wrap واریانت خودِ نوار است: قیمت + ردیف افزودن + کنترل «در سبد» + اطلاعیه
+        echo '<div class="single_variation_wrap amfc-atc__bar">';
+        $this->render_notice($settings);
+        echo '<div class="amfc-atc__bar-main">';
         if ('yes' === $settings['show_price']) {
             echo '<div class="amfc-atc__price-box" data-role="price"></div>';
         }
@@ -1463,9 +1545,32 @@ class Add_To_Cart extends Widget_Base {
         $this->render_quantity($settings, $product);
         $this->render_button($settings, $product, true);
         echo '</div>';
+        $this->render_incart_control($settings);
+        echo '</div>';
         echo '</div>';
 
         echo '</form>';
+    }
+
+    /** اطلاعیه «کالا اضافه شده» — فقط در نوار چسبان موبایل نمایش داده می‌شود */
+    private function render_notice(array $settings): void {
+        if ('yes' !== ($settings['sticky_mobile'] ?? '') || 'yes' !== ($settings['sticky_notice'] ?? 'yes')) {
+            return;
+        }
+        ?>
+        <div class="amfc-atc__notice" aria-live="polite">
+            <div class="amfc-atc__notice-in">
+                <span class="amfc-atc__notice-msg">
+                    <svg viewBox="0 0 24 24" width="1.3em" height="1.3em" fill="currentColor" aria-hidden="true"><path d="M12 1.8 14.4 3.6l2.9-.5 1.1 2.8 2.8 1.1-.5 2.9L22.2 12l-1.5 2.4.5 2.9-2.8 1.1-1.1 2.8-2.9-.5L12 22.2l-2.4-1.5-2.9.5-1.1-2.8-2.8-1.1.5-2.9L1.8 12l1.5-2.4-.5-2.9 2.8-1.1 1.1-2.8 2.9.5Z"/><path d="m8.5 12 2.3 2.3 4.7-4.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <?php echo esc_html($settings['notice_text'] ?? __('کالا اضافه شده', 'almasara-fast-cart')); ?>
+                </span>
+                <a class="amfc-atc__notice-link" href="<?php echo esc_url(wc_get_cart_url()); ?>">
+                    <?php echo esc_html($settings['notice_link_text'] ?? __('برو به سبد خرید', 'almasara-fast-cart')); ?>
+                    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+                </a>
+            </div>
+        </div>
+        <?php
     }
 
     /** انتخابگر تعداد هنگام افزودن */

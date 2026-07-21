@@ -14,12 +14,28 @@
 	display: none !important;
 }
 
-.amfc-atc__variations,
-.amfc-atc .single_variation_wrap {
+.amfc-atc__variations {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
 	margin: 0;
+}
+
+/* نوار: اطلاعیه + بدنه (قیمت/ردیف افزودن/کنترل «در سبد») — در موبایلِ چسبان fixed می‌شود */
+.amfc-atc__bar {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+}
+
+.amfc-atc__bar-main {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.amfc-atc__notice {
+	display: none;
 }
 
 /* ---------- واریانت‌ها ---------- */
@@ -369,18 +385,15 @@
 }
 
 /* ---------- نوار چسبان موبایل ---------- */
-/* ظاهر نوار از متغیرهای CSS می‌آید که کنترل‌های پنل روی ریشه ویجت ست می‌کنند؛
-   انتخابگرهای واریانت داخل جریان صفحه می‌مانند و فقط ردیف افزودن/کنترل «در سبد»
-   fixed می‌شود (در هر لحظه فقط یکی از این دو دیده می‌شود). */
+/* کل نوار (قیمت + اکشن + اطلاعیه) fixed می‌شود؛ انتخابگرهای واریانت داخل
+   جریان صفحه می‌مانند. ظاهر از متغیرهای CSS پنل می‌آید و دسکتاپ اثری نمی‌گیرد. */
 @media (max-width: 767px) {
-	.amfc-atc--stickym .amfc-atc__addrow,
-	.amfc-atc--stickym .amfc-atc__incart {
+	.amfc-atc--stickym .amfc-atc__bar {
 		position: fixed;
 		left: var(--amfc-bar-x, 0px);
 		right: var(--amfc-bar-x, 0px);
 		bottom: var(--amfc-bar-b, 0px);
 		z-index: var(--amfc-bar-z, 990);
-		margin: 0;
 		background: var(--amfc-bar-bg, #fff);
 		border-top: 1px solid var(--amfc-bar-border, transparent);
 		border-radius: var(--amfc-bar-radius, 0px);
@@ -388,6 +401,93 @@
 		padding: var(--amfc-bar-pt, 10px) var(--amfc-bar-pr, 14px)
 			calc(var(--amfc-bar-pb, 10px) + env(safe-area-inset-bottom, 0px))
 			var(--amfc-bar-pl, 14px);
+	}
+
+	/* بدنه نوار: قیمت سمت راست، اکشن سمت چپ (RTL) */
+	.amfc-atc--stickym .amfc-atc__bar-main {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__addrow,
+	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__incart {
+		flex: 1;
+		justify-content: flex-end;
+		margin: 0;
+	}
+
+	/* در نوار، متن «در سبد شما / مشاهده سبد» جایی ندارد؛ اطلاعیه جایگزین است */
+	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__incart-info {
+		display: none;
+	}
+
+	/* قیمت دوطبقه فشرده مثل دیزاین: بج + قیمت قدیم بالا، قیمت نهایی پایین */
+	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__price-box {
+		display: grid;
+		grid-template-columns: repeat(2, auto);
+		justify-content: start;
+		align-items: center;
+		gap: 2px 8px;
+		flex-shrink: 0;
+	}
+
+	.amfc-atc--stickym .amfc-atc__bar-main .amfc-atc__price--now {
+		grid-column: 1 / -1;
+	}
+
+	/* اطلاعیه «کالا اضافه شده»: ورود از پایین به بالا، خروج برعکس */
+	.amfc-atc--stickym .amfc-atc__notice {
+		display: block;
+		overflow: hidden;
+		max-height: 0;
+		opacity: 0;
+		transform: translateY(16px);
+		border-bottom: 1px solid transparent;
+		transition: max-height 0.35s ease, opacity 0.3s ease, transform 0.35s ease,
+			padding 0.35s ease, margin 0.35s ease, border-color 0.35s ease;
+	}
+
+	.amfc-atc--stickym .amfc-atc__notice.is-open {
+		max-height: 120px;
+		opacity: 1;
+		transform: translateY(0);
+		padding-bottom: 12px;
+		margin-bottom: 12px;
+		border-bottom-color: #eceef3;
+	}
+
+	.amfc-atc--stickym .amfc-atc__notice-in {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		padding: 10px 14px;
+		border-radius: var(--amfc-ntc-radius, 18px);
+		background: var(--amfc-ntc-bg, #dcebd9);
+		color: var(--amfc-ntc-color, #2f7d33);
+		font-weight: 800;
+	}
+
+	.amfc-atc__notice-msg {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.amfc-atc__notice-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 8px 16px;
+		border-radius: 999px;
+		background: var(--amfc-ntc-link-bg, #fff);
+		color: var(--amfc-ntc-link, #1c1c1c);
+		font-size: 13px;
+		font-weight: 700;
+		text-decoration: none;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 	}
 
 	/* جای خالی انتهای صفحه تا محتوا زیر نوار دفن نشود؛ JS مقدارش را ست می‌کند */
