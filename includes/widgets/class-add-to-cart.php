@@ -664,15 +664,11 @@ class Add_To_Cart extends Widget_Base {
             'condition'  => ['show_icon' => 'yes'],
         ]);
 
-        $this->add_control('heading_btn_states', [
-            'label'     => __('حالت‌ها', 'almasara-fast-cart'),
+        $this->add_control('heading_btn_state_normal', [
+            'label'     => __('حالت عادی', 'almasara-fast-cart'),
             'type'      => Controls_Manager::HEADING,
             'separator' => 'before',
         ]);
-
-        $this->start_controls_tabs('btn_state_tabs');
-
-        $this->start_controls_tab('btn_normal', ['label' => __('عادی', 'almasara-fast-cart')]);
         $this->add_control('btn_color', [
             'label'     => __('رنگ متن و آیکون', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
@@ -694,9 +690,12 @@ class Add_To_Cart extends Widget_Base {
             'label'    => __('سایه', 'almasara-fast-cart'),
             'selector' => '{{WRAPPER}} .amfc-atc__btn',
         ]);
-        $this->end_controls_tab();
 
-        $this->start_controls_tab('btn_hover', ['label' => __('هاور', 'almasara-fast-cart')]);
+        $this->add_control('heading_btn_state_hover', [
+            'label'     => __('حالت هاور', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
         $this->add_control('btn_color_hover', [
             'label'     => __('رنگ متن و آیکون', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
@@ -725,9 +724,12 @@ class Add_To_Cart extends Widget_Base {
             'range'      => ['px' => ['min' => -10, 'max' => 10]],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__btn:hover' => 'transform: translateY({{SIZE}}px);'],
         ]);
-        $this->end_controls_tab();
 
-        $this->start_controls_tab('btn_disabled', ['label' => __('غیرفعال', 'almasara-fast-cart')]);
+        $this->add_control('heading_btn_state_disabled', [
+            'label'     => __('حالت غیرفعال', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
         $this->add_control('btn_disabled_note', [
             'type'            => Controls_Manager::RAW_HTML,
             'raw'             => __('محصول متغیر تا انتخاب کامل واریانت، دکمه غیرفعال است.', 'almasara-fast-cart'),
@@ -759,9 +761,6 @@ class Add_To_Cart extends Widget_Base {
             'range'     => ['px' => ['min' => 0.1, 'max' => 1, 'step' => 0.05]],
             'selectors' => ['{{WRAPPER}} .amfc-atc__btn:disabled' => 'opacity: {{SIZE}};'],
         ]);
-        $this->end_controls_tab();
-
-        $this->end_controls_tabs();
 
         $this->add_control('heading_btn_motion', [
             'label'     => __('انیمیشن و لودر', 'almasara-fast-cart'),
@@ -950,9 +949,11 @@ class Add_To_Cart extends Widget_Base {
             'separator' => 'before',
         ]);
 
-        $this->start_controls_tabs('control_state_tabs');
-
-        $this->start_controls_tab('control_normal', ['label' => __('عادی', 'almasara-fast-cart')]);
+        $this->add_control('heading_control_state_normal', [
+            'label'     => __('حالت عادی', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
         $this->add_control('control_bg', [
             'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
@@ -968,9 +969,12 @@ class Add_To_Cart extends Widget_Base {
             'label'    => __('سایه', 'almasara-fast-cart'),
             'selector' => '{{WRAPPER}} .amfc-atc__control',
         ]);
-        $this->end_controls_tab();
 
-        $this->start_controls_tab('control_hover', ['label' => __('هاور', 'almasara-fast-cart')]);
+        $this->add_control('heading_control_state_hover', [
+            'label'     => __('حالت هاور', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
         $this->add_control('control_bg_hover', [
             'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
@@ -992,9 +996,12 @@ class Add_To_Cart extends Widget_Base {
             'selectors'   => ['{{WRAPPER}} .amfc-atc__ctl:hover' => 'background-color: {{VALUE}};'],
             'separator'   => 'before',
         ]);
-        $this->end_controls_tab();
 
-        $this->start_controls_tab('control_disabled', ['label' => __('غیرفعال (سقف موجودی)', 'almasara-fast-cart')]);
+        $this->add_control('heading_control_state_disabled', [
+            'label'     => __('حالت غیرفعال (سقف موجودی)', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
         $this->add_control('control_disabled_note', [
             'type'            => Controls_Manager::RAW_HTML,
             'raw'             => __('در سقف موجودی، دکمه + غیرقابل کلیک است؛ این تب ظاهر کل کادر کنترل را در همان حالت تعیین می‌کند.', 'almasara-fast-cart'),
@@ -1023,9 +1030,6 @@ class Add_To_Cart extends Widget_Base {
             'separator' => 'before',
             'selectors' => ['{{WRAPPER}} .amfc-atc__control.is-max .amfc-atc__ctl--inc' => 'opacity: {{SIZE}};'],
         ]);
-        $this->end_controls_tab();
-
-        $this->end_controls_tabs();
 
         $this->add_control('heading_control_motion', [
             'label'     => __('انیمیشن و لودر', 'almasara-fast-cart'),
