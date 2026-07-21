@@ -25,8 +25,8 @@
 /* ---------- واریانت‌ها ---------- */
 
 .amfc-atc__attrs {
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr;
 	gap: 12px;
 }
 
@@ -58,8 +58,8 @@
 	appearance: none;
 	/* فلش سفارشی سمت مقابل متن (RTL) */
 	background-image: linear-gradient(45deg, transparent 50%, var(--amfc-arrow) 50%), linear-gradient(135deg, var(--amfc-arrow) 50%, transparent 50%);
-	background-position: calc(0% + 18px) center, calc(0% + 24px) center;
-	background-size: 6px 6px, 6px 6px;
+	background-position: calc(0% + 18px) center, calc(0% + 18px + var(--amfc-arrow-s, 6px)) center;
+	background-size: var(--amfc-arrow-s, 6px) var(--amfc-arrow-s, 6px), var(--amfc-arrow-s, 6px) var(--amfc-arrow-s, 6px);
 	background-repeat: no-repeat;
 	text-align: center;
 	text-align-last: center;
@@ -366,4 +366,32 @@
 @media (prefers-reduced-motion: reduce) {
 	.amfc-atc__btn-loader,
 	.amfc-atc__ctl-loader { animation-duration: 0.01ms; }
+}
+
+/* ---------- نوار چسبان موبایل ---------- */
+/* ظاهر نوار از متغیرهای CSS می‌آید که کنترل‌های پنل روی ریشه ویجت ست می‌کنند؛
+   انتخابگرهای واریانت داخل جریان صفحه می‌مانند و فقط ردیف افزودن/کنترل «در سبد»
+   fixed می‌شود (در هر لحظه فقط یکی از این دو دیده می‌شود). */
+@media (max-width: 767px) {
+	.amfc-atc--stickym .amfc-atc__addrow,
+	.amfc-atc--stickym .amfc-atc__incart {
+		position: fixed;
+		left: var(--amfc-bar-x, 0px);
+		right: var(--amfc-bar-x, 0px);
+		bottom: var(--amfc-bar-b, 0px);
+		z-index: var(--amfc-bar-z, 990);
+		margin: 0;
+		background: var(--amfc-bar-bg, #fff);
+		border-top: 1px solid var(--amfc-bar-border, transparent);
+		border-radius: var(--amfc-bar-radius, 0px);
+		box-shadow: var(--amfc-bar-shadow, 0 -8px 28px rgba(0, 0, 0, 0.12));
+		padding: var(--amfc-bar-pt, 10px) var(--amfc-bar-pr, 14px)
+			calc(var(--amfc-bar-pb, 10px) + env(safe-area-inset-bottom, 0px))
+			var(--amfc-bar-pl, 14px);
+	}
+
+	/* جای خالی انتهای صفحه تا محتوا زیر نوار دفن نشود؛ JS مقدارش را ست می‌کند */
+	body.amfc-stickym-pad {
+		padding-bottom: var(--amfc-sticky-pad, 0px) !important;
+	}
 }

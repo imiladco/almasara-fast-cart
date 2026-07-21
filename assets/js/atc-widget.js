@@ -138,6 +138,39 @@
 
 	function refreshAll() {
 		liveRoots().forEach(refreshState);
+		updateStickyPad();
+	}
+
+	/* ---------------- نوار چسبان موبایل ---------------- */
+
+	// نوار fixed محتوای انتهای صفحه را می‌پوشاند؛ به‌اندازه بلندترین نوارِ
+	// دیده‌شده به body پدینگ پایین می‌دهیم (متغیر CSS + کلاس، بدون دستکاری مستقیم)
+	var stickyMq = window.matchMedia('(max-width: 767px)');
+
+	function updateStickyPad() {
+		var pad = 0;
+		if (stickyMq.matches) {
+			liveRoots().forEach(function (root) {
+				if (!root.classList.contains('amfc-atc--stickym')) {
+					return;
+				}
+				var el = root.classList.contains('amfc-atc--incart')
+					? root.querySelector('.amfc-atc__incart')
+					: root.querySelector('.amfc-atc__addrow');
+				if (el && el.offsetHeight) {
+					var rect = el.getBoundingClientRect();
+					var bottom = parseFloat(getComputedStyle(el).bottom) || 0;
+					pad = Math.max(pad, rect.height + bottom + 12);
+				}
+			});
+		}
+		document.body.classList.toggle('amfc-stickym-pad', pad > 0);
+		document.body.style.setProperty('--amfc-sticky-pad', Math.ceil(pad) + 'px');
+	}
+
+	window.addEventListener('resize', updateStickyPad);
+	if (stickyMq.addEventListener) {
+		stickyMq.addEventListener('change', updateStickyPad);
 	}
 
 	function paintControl(root, qty, max) {
@@ -341,11 +374,22 @@
 					$form.data('product_id_initialized', true);
 					$form.wc_variation_form();
 				}
+				// تا انتخاب کامل واریانت، دکمه واقعاً disabled است (استایل تب «غیرفعال»)
+				var vbtn = root.querySelector('.amfc-atc__btn');
+				if (vbtn) {
+					vbtn.disabled = true;
+				}
 				$form.on('found_variation', function (ev, variation) {
+					if (vbtn) {
+						vbtn.disabled = !(variation && variation.is_purchasable && variation.is_in_stock);
+					}
 					fillVariablePrice(root, variation);
 					refreshState(root);
 				});
-				$form.on('reset_data', function () {
+				$form.on('reset_data hide_variation', function () {
+					if (vbtn) {
+						vbtn.disabled = true;
+					}
 					fillVariablePrice(root, null);
 					refreshState(root);
 				});

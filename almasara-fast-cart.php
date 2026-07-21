@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Almasara Fast Cart
  * Description:       سبد خرید سریع ووکامرس: افزودن خوش‌بینانه، ویجت المنتوری با واریانت، بج آنی — لایه بهبود روی مکانیزم بومی، نه جایگزین آن.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Author:            Almasara
  * Text Domain:       almasara-fast-cart
  * Requires at least: 6.0
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('AMFC_VERSION', '1.3.0');
+define('AMFC_VERSION', '1.4.0');
 define('AMFC_FILE', __FILE__);
 define('AMFC_PATH', plugin_dir_path(__FILE__));
 define('AMFC_URL', plugin_dir_url(__FILE__));

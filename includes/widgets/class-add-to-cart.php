@@ -64,8 +64,10 @@ class Add_To_Cart extends Widget_Base {
         $this->register_price_content_controls();
         $this->register_quantity_content_controls();
         $this->register_incart_content_controls();
+        $this->register_sticky_content_controls();
 
         $this->register_layout_style_controls();
+        $this->register_sticky_style_controls();
         $this->register_button_style_controls();
         $this->register_price_layout_style_controls();
         $this->register_price_now_style_controls();
@@ -252,6 +254,23 @@ class Add_To_Cart extends Widget_Base {
         $this->end_controls_section();
     }
 
+    /* ---------------- محتوا: نوار چسبان موبایل ---------------- */
+
+    private function register_sticky_content_controls(): void {
+        $this->start_controls_section('section_sticky', [
+            'label' => __('نوار چسبان (موبایل)', 'almasara-fast-cart'),
+            'tab'   => Controls_Manager::TAB_CONTENT,
+        ]);
+
+        $this->add_control('sticky_mobile', [
+            'label'       => __('چسبیدن به پایین نمایشگر', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::SWITCHER,
+            'description' => __('در موبایل، ردیف افزودن (تعداد + دکمه) و کنترل «در سبد شما» به پایین نمایشگر می‌چسبند؛ انتخابگرهای محصول متغیر سر جای خود در صفحه می‌مانند. استایل نوار در تب استایل → «نوار چسبان» است.', 'almasara-fast-cart'),
+        ]);
+
+        $this->end_controls_section();
+    }
+
     /* ---------------- استایل: چیدمان ---------------- */
 
     private function register_layout_style_controls(): void {
@@ -293,6 +312,83 @@ class Add_To_Cart extends Widget_Base {
         $this->end_controls_section();
     }
 
+    /* ---------------- استایل: نوار چسبان موبایل ---------------- */
+
+    /**
+     * همه کنترل‌ها متغیر CSS روی ریشه ست می‌کنند؛ خود ظاهر نوار فقط داخل
+     * media query موبایل مصرف می‌شود تا هیچ اثری روی دسکتاپ نگذارد.
+     */
+    private function register_sticky_style_controls(): void {
+        $this->start_controls_section('section_style_sticky', [
+            'label'     => __('نوار چسبان (موبایل)', 'almasara-fast-cart'),
+            'tab'       => Controls_Manager::TAB_STYLE,
+            'condition' => ['sticky_mobile' => 'yes'],
+        ]);
+
+        $this->add_control('bar_bg', [
+            'label'     => __('رنگ پس‌زمینه نوار', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-bg: {{VALUE}};'],
+        ]);
+
+        $this->add_control('bar_border_color', [
+            'label'     => __('رنگ خط بالای نوار', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-border: {{VALUE}};'],
+        ]);
+
+        $this->add_control('bar_shadow_color', [
+            'label'     => __('رنگ سایه نوار', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-shadow: 0 -8px 28px {{VALUE}};'],
+        ]);
+
+        $this->add_control('bar_padding', [
+            'label'     => __('پدینگ نوار', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px'],
+            'selectors' => [
+                '{{WRAPPER}} .amfc-atc' => '--amfc-bar-pt: {{TOP}}{{UNIT}}; --amfc-bar-pr: {{RIGHT}}{{UNIT}}; --amfc-bar-pb: {{BOTTOM}}{{UNIT}}; --amfc-bar-pl: {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_control('bar_radius', [
+            'label'       => __('گردی گوشه‌های نوار', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::DIMENSIONS,
+            'size_units'  => ['px'],
+            'description' => __('برای حالت کلاسیک فقط دو گوشه بالا را گرد کنید.', 'almasara-fast-cart'),
+            'selectors'   => [
+                '{{WRAPPER}} .amfc-atc' => '--amfc-bar-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_control('bar_offset_bottom', [
+            'label'       => __('فاصله از پایین نمایشگر', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::SLIDER,
+            'size_units'  => ['px'],
+            'range'       => ['px' => ['min' => 0, 'max' => 160]],
+            'description' => __('اگر منوی ثابت پایین موبایل دارید، به‌اندازه ارتفاع آن فاصله بدهید تا نوار بالای منو بنشیند.', 'almasara-fast-cart'),
+            'selectors'   => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-b: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('bar_offset_x', [
+            'label'      => __('فاصله از کناره‌ها', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 60]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-x: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('bar_zindex', [
+            'label'       => __('z-index', 'almasara-fast-cart'),
+            'type'        => Controls_Manager::NUMBER,
+            'description' => __('اگر منوی پایین پوسته روی نوار می‌افتد، این عدد را بزرگ‌تر کنید.', 'almasara-fast-cart'),
+            'selectors'   => ['{{WRAPPER}} .amfc-atc' => '--amfc-bar-z: {{VALUE}};'],
+        ]);
+
+        $this->end_controls_section();
+    }
+
     /* ---------------- استایل: دکمه ---------------- */
 
     private function register_button_style_controls(): void {
@@ -322,6 +418,20 @@ class Add_To_Cart extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}} .amfc-atc__btn' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
+        ]);
+
+        $this->add_responsive_control('btn_height', [
+            'label'      => __('حداقل ارتفاع', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 36, 'max' => 90]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__btn' => 'min-height: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('btn_loader_color', [
+            'label'     => __('رنگ لودر دکمه', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__btn-loader' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_responsive_control('icon_size', [
@@ -381,12 +491,40 @@ class Add_To_Cart extends Widget_Base {
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__btn:hover' => 'border-color: {{VALUE}};'],
         ]);
+        $this->add_group_control(Group_Control_Box_Shadow::get_type(), [
+            'name'     => 'btn_shadow_hover',
+            'selector' => '{{WRAPPER}} .amfc-atc__btn:hover',
+        ]);
         $this->add_control('btn_transform_hover', [
             'label'      => __('جابه‌جایی عمودی', 'almasara-fast-cart'),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => -10, 'max' => 10]],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__btn:hover' => 'transform: translateY({{SIZE}}px);'],
+        ]);
+        $this->end_controls_tab();
+
+        $this->start_controls_tab('btn_disabled', ['label' => __('غیرفعال', 'almasara-fast-cart')]);
+        $this->add_control('btn_disabled_note', [
+            'type'            => Controls_Manager::RAW_HTML,
+            'raw'             => __('محصول متغیر تا انتخاب کامل واریانت، دکمه غیرفعال است.', 'almasara-fast-cart'),
+            'content_classes' => 'elementor-descriptor',
+        ]);
+        $this->add_control('btn_bg_disabled', [
+            'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__btn:disabled' => 'background: {{VALUE}};'],
+        ]);
+        $this->add_control('btn_color_disabled', [
+            'label'     => __('رنگ متن و آیکون', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__btn:disabled' => 'color: {{VALUE}};'],
+        ]);
+        $this->add_control('btn_opacity_disabled', [
+            'label'     => __('شفافیت', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::SLIDER,
+            'range'     => ['px' => ['min' => 0.1, 'max' => 1, 'step' => 0.05]],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__btn:disabled' => 'opacity: {{SIZE}};'],
         ]);
         $this->end_controls_tab();
 
@@ -447,6 +585,12 @@ class Add_To_Cart extends Widget_Base {
             'selector' => '{{WRAPPER}} .amfc-atc__qty',
         ]);
 
+        $this->add_control('qty_border_focus', [
+            'label'     => __('رنگ حاشیه در فوکوس', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__qty:focus-within' => 'border-color: {{VALUE}};'],
+        ]);
+
         $this->add_responsive_control('qty_radius', [
             'label'      => __('رادیوس', 'almasara-fast-cart'),
             'type'       => Controls_Manager::DIMENSIONS,
@@ -454,6 +598,44 @@ class Add_To_Cart extends Widget_Base {
             'selectors'  => [
                 '{{WRAPPER}} .amfc-atc__qty' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ],
+        ]);
+
+        $this->add_responsive_control('qty_input_width', [
+            'label'      => __('عرض فیلد عدد', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 30, 'max' => 120]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__qty-input' => 'width: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('heading_steps', [
+            'label'     => __('دکمه‌های − و +', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+            'condition' => ['quantity_style' => 'stepper'],
+        ]);
+
+        $this->add_responsive_control('step_width', [
+            'label'     => __('عرض دکمه‌ها', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'     => ['px' => ['min' => 24, 'max' => 70]],
+            'selectors' => ['{{WRAPPER}} .amfc-atc__step' => 'width: {{SIZE}}{{UNIT}};'],
+            'condition' => ['quantity_style' => 'stepper'],
+        ]);
+
+        $this->add_control('step_color', [
+            'label'     => __('رنگ دکمه‌ها', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__step' => 'color: {{VALUE}};'],
+            'condition' => ['quantity_style' => 'stepper'],
+        ]);
+
+        $this->add_control('step_bg_hover', [
+            'label'     => __('پس‌زمینه دکمه‌ها در هاور', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__step:hover' => 'background-color: {{VALUE}};'],
+            'condition' => ['quantity_style' => 'stepper'],
         ]);
 
         $this->end_controls_section();
@@ -479,6 +661,21 @@ class Add_To_Cart extends Widget_Base {
             'selectors' => ['{{WRAPPER}} .amfc-atc__attr-label' => 'color: {{VALUE}};'],
         ]);
 
+        $this->add_responsive_control('attrs_columns', [
+            'label'                => __('چیدمان ستونی', 'almasara-fast-cart'),
+            'type'                 => Controls_Manager::CHOOSE,
+            'default'              => '1',
+            'options'              => [
+                '1' => ['title' => __('تک‌ستونه', 'almasara-fast-cart'), 'icon' => 'eicon-editor-list-ul'],
+                '2' => ['title' => __('دوستونه', 'almasara-fast-cart'), 'icon' => 'eicon-gallery-grid'],
+            ],
+            'selectors_dictionary' => [
+                '1' => 'grid-template-columns: 1fr;',
+                '2' => 'grid-template-columns: repeat(2, 1fr);',
+            ],
+            'selectors'            => ['{{WRAPPER}} .amfc-atc__attrs' => '{{VALUE}}'],
+        ]);
+
         $this->add_responsive_control('attr_gap', [
             'label'      => __('فاصله بین واریانت‌ها', 'almasara-fast-cart'),
             'type'       => Controls_Manager::SLIDER,
@@ -486,6 +683,14 @@ class Add_To_Cart extends Widget_Base {
             'range'      => ['px' => ['min' => 0, 'max' => 40]],
             'default'    => ['size' => 12, 'unit' => 'px'],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__attrs' => 'gap: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_responsive_control('attr_label_gap', [
+            'label'      => __('فاصله عنوان تا دراپ‌داون', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 30]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__attr' => 'gap: {{SIZE}}{{UNIT}};'],
         ]);
 
         $this->add_control('heading_select', [
@@ -525,9 +730,32 @@ class Add_To_Cart extends Widget_Base {
             'selectors' => ['{{WRAPPER}} .amfc-atc__attr' => '--amfc-arrow: {{VALUE}};'],
         ]);
 
+        $this->add_responsive_control('select_arrow_size', [
+            'label'      => __('اندازه فلش', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 4, 'max' => 14]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__attr' => '--amfc-arrow-s: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_responsive_control('select_padding', [
+            'label'      => __('پدینگ', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__attr select' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
         $this->add_group_control(Group_Control_Border::get_type(), [
             'name'     => 'select_border',
             'selector' => '{{WRAPPER}} .amfc-atc__attr select',
+        ]);
+
+        $this->add_control('select_border_focus', [
+            'label'     => __('رنگ حاشیه در فوکوس', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__attr select:focus' => 'border-color: {{VALUE}}; outline: none;'],
         ]);
 
         $this->add_responsive_control('select_radius', [
@@ -545,17 +773,58 @@ class Add_To_Cart extends Widget_Base {
             'separator' => 'before',
         ]);
 
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'reset_typo',
+            'label'    => __('تایپوگرافی', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__reset',
+        ]);
+
+        $this->add_responsive_control('reset_padding', [
+            'label'      => __('پدینگ', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => ['px', 'em'],
+            'selectors'  => [
+                '{{WRAPPER}} .amfc-atc__reset' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ],
+        ]);
+
+        $this->add_responsive_control('reset_radius', [
+            'label'      => __('رادیوس', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 30]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__reset' => 'border-radius: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->start_controls_tabs('reset_tabs');
+
+        $this->start_controls_tab('reset_normal', ['label' => __('عادی', 'almasara-fast-cart')]);
         $this->add_control('reset_color', [
             'label'     => __('رنگ متن', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__reset' => 'color: {{VALUE}};'],
         ]);
-
         $this->add_control('reset_bg', [
             'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__reset' => 'background-color: {{VALUE}};'],
         ]);
+        $this->end_controls_tab();
+
+        $this->start_controls_tab('reset_hover', ['label' => __('هاور', 'almasara-fast-cart')]);
+        $this->add_control('reset_color_hover', [
+            'label'     => __('رنگ متن', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__reset:hover' => 'color: {{VALUE}};'],
+        ]);
+        $this->add_control('reset_bg_hover', [
+            'label'     => __('رنگ پس‌زمینه', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__reset:hover' => 'background-color: {{VALUE}};'],
+        ]);
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
 
         $this->end_controls_section();
     }
@@ -924,6 +1193,20 @@ class Add_To_Cart extends Widget_Base {
             'tab'   => Controls_Manager::TAB_STYLE,
         ]);
 
+        $this->add_responsive_control('incart_gap', [
+            'label'      => __('فاصله متن‌ها تا کنترل', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 60]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__incart' => 'gap: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('heading_incart_texts', [
+            'label'     => __('عنوان و لینک', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ]);
+
         $this->add_group_control(Group_Control_Typography::get_type(), [
             'name'     => 'incart_title_typo',
             'label'    => __('تایپوگرافی عنوان', 'almasara-fast-cart'),
@@ -936,10 +1219,22 @@ class Add_To_Cart extends Widget_Base {
             'selectors' => ['{{WRAPPER}} .amfc-atc__incart-title' => 'color: {{VALUE}};'],
         ]);
 
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'view_link_typo',
+            'label'    => __('تایپوگرافی لینک مشاهده سبد', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__incart-link',
+        ]);
+
         $this->add_control('view_link_color', [
             'label'     => __('رنگ لینک مشاهده سبد', 'almasara-fast-cart'),
             'type'      => Controls_Manager::COLOR,
             'selectors' => ['{{WRAPPER}} .amfc-atc__incart-link' => 'color: {{VALUE}};'],
+        ]);
+
+        $this->add_control('view_link_color_hover', [
+            'label'     => __('رنگ لینک در هاور', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__incart-link:hover' => 'color: {{VALUE}};'],
         ]);
 
         $this->add_control('heading_control', [
@@ -979,6 +1274,28 @@ class Add_To_Cart extends Widget_Base {
             'size_units' => ['px'],
             'range'      => ['px' => ['min' => 40, 'max' => 90]],
             'selectors'  => ['{{WRAPPER}} .amfc-atc__control' => 'height: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_responsive_control('control_padding', [
+            'label'      => __('پدینگ افقی', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 0, 'max' => 40]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__control' => 'padding-inline: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_responsive_control('ctl_size', [
+            'label'      => __('اندازه دکمه‌های − و +', 'almasara-fast-cart'),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => ['px'],
+            'range'      => ['px' => ['min' => 24, 'max' => 64]],
+            'selectors'  => ['{{WRAPPER}} .amfc-atc__ctl' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};'],
+        ]);
+
+        $this->add_control('ctl_bg_hover', [
+            'label'     => __('پس‌زمینه دکمه‌ها در هاور', 'almasara-fast-cart'),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => ['{{WRAPPER}} .amfc-atc__ctl:hover' => 'background-color: {{VALUE}};'],
         ]);
 
         $this->add_group_control(Group_Control_Typography::get_type(), [
@@ -1024,6 +1341,12 @@ class Add_To_Cart extends Widget_Base {
             'selectors' => ['{{WRAPPER}} .amfc-atc__ctl-max' => 'color: {{VALUE}};'],
         ]);
 
+        $this->add_group_control(Group_Control_Typography::get_type(), [
+            'name'     => 'max_typo',
+            'label'    => __('تایپوگرافی متن حداکثر', 'almasara-fast-cart'),
+            'selector' => '{{WRAPPER}} .amfc-atc__ctl-max',
+        ]);
+
         $this->end_controls_section();
     }
 
@@ -1054,10 +1377,16 @@ class Add_To_Cart extends Widget_Base {
             'free'    => trim((string) ($settings['free_text'] ?? '')),
         ];
 
+        $classes = 'amfc-atc amfc-atc--' . $type;
+        if ('yes' === ($settings['sticky_mobile'] ?? '')) {
+            $classes .= ' amfc-atc--stickym';
+        }
+
         printf(
-            '<div class="amfc-atc amfc-atc--%1$s" data-product="%2$d" data-type="%1$s" data-max-text="%3$s" data-price-cfg="%4$s">',
-            esc_attr($type),
+            '<div class="%1$s" data-product="%2$d" data-type="%3$s" data-max-text="%4$s" data-price-cfg="%5$s">',
+            esc_attr($classes),
             (int) $product->get_id(),
+            esc_attr($type),
             esc_attr($settings['max_text']),
             esc_attr(wp_json_encode($price_cfg))
         );
